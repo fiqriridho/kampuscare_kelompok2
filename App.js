@@ -28,13 +28,13 @@ const mockReports = [
 ];
 
 const mockProfile = {
-  name: 'Fiqri Fahrezi',
-  nim: '2201010099',
-  major: 'Teknik Informatika',
-  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200',
+  name: "Fiqri Ridho F",
+  nim: "202410370110167",
+  major: "Teknik Informatika",
+  avatar: "https://krs.umm.ac.id/Poto/2024/202410370110167.JPG",
   history: [
-    { id: '101', title: 'Pintu Toilet Rusak', location: 'Gedung B Lt. 2', status: 'Diproses', date: '15 Sep 2026' },
-    { id: '102', title: 'Lampu SV Mati', location: 'Parkiran Timur', status: 'Selesai', date: '02 Sep 2026' },
+    { id: "101", title: "Pintu Toilet Rusak", location: "Gedung B Lt. 2", status: "Diproses", date: "15 Sep 2026" },
+    { id: "102", title: "Lampu SV Mati", location: "Parkiran Timur", status: "Selesai", date: "02 Sep 2026" },
   ],
 };
 
