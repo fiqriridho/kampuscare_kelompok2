@@ -1,25 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-  Dimensions,
-  Image,
-  TextInput,
-  Alert,
   ActivityIndicator,
+<<<<<<< HEAD
   Platform,
   KeyboardAvoidingView,
   useWindowDimensions,
   RefreshControl,
+=======
+  StatusBar,
+>>>>>>> 8f9221776dbf29317cb4c366df3cec294c7e121e
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
 
+<<<<<<< HEAD
 // ============================================================================
 // 1. STORAGE KEYS & ARCHITECTURE (PEMISAHAN DATA SECARA KETAT)
 // ============================================================================
@@ -714,6 +710,52 @@ export default function App() {
       </TouchableOpacity>
     </View>
   );
+=======
+import useAuth from './src/hooks/useAuth';
+import AuthScreen from './src/app/AuthScreen';
+import HomeScreen from './src/app/HomeScreen';
+import CameraScreen from './src/app/CameraScreen';
+import ProfileScreen from './src/app/ProfileScreen';
+import BottomNavigation from './src/components/BottomNavigation';
+
+export default function App() {
+  const {
+    activeTab,
+    setActiveTab,
+    isAuthenticated,
+    isLoadingSession,
+    authMode,
+    setAuthMode,
+    authError,
+    setAuthError,
+    authSuccess,
+    setAuthSuccess,
+    isSubmitting,
+    loginEmail,
+    setLoginEmail,
+    loginPassword,
+    setLoginPassword,
+    regName,
+    setRegName,
+    regNim,
+    setRegNim,
+    regMajor,
+    setRegMajor,
+    regEmail,
+    setRegEmail,
+    regPassword,
+    setRegPassword,
+    regConfirmPassword,
+    setRegConfirmPassword,
+    userProfile,
+    reportHistory,
+    handleLogin,
+    handleRegister,
+    handleLogout,
+    handleCreateNewReport,
+    handleFillDemoAccount,
+  } = useAuth();
+>>>>>>> 8f9221776dbf29317cb4c366df3cec294c7e121e
 
   // ----------------------------------------------------
   // LOADING SPLASH SCREEN SAAT MEMERIKSA SESI
@@ -728,303 +770,45 @@ export default function App() {
   }
 
   // ----------------------------------------------------
-  // AUTHENTICATION SCREEN (RESPONSIVE SPLIT / SINGLE-COLUMN)
+  // AUTHENTICATION SCREEN (RESPONSIVE SPLIT / MOBILE)
   // ----------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.authSafeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F1F5F9" />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
-            contentContainerStyle={[
-              styles.authMasterScroll,
-              isWide && styles.authMasterScrollWide,
-            ]}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {isWide ? (
-              // ============================================
-              // LAYAR LEBAR (TABLET / DESKTOP): SPLIT-SCREEN
-              // ============================================
-              <View style={styles.splitCard}>
-                {/* KOLOM KIRI: BRANDING & HIGHLIGHTS KAMPUSCARE */}
-                <View style={styles.splitBrandSide}>
-                  <View style={styles.brandDecorCircle1} />
-                  <View style={styles.brandDecorCircle2} />
-
-                  <View style={styles.brandTopContent}>
-                    <View style={styles.brandLogoCircleWide}>
-                      <Text style={styles.brandLogoIconWide}>🏫</Text>
-                    </View>
-                    <Text style={styles.splitBrandTitle}>KampusCare</Text>
-                    <Text style={styles.splitBrandTagline}>
-                      Sistem Pelayanan & Fasilitas Kampus Terpadu
-                    </Text>
-
-                    <View style={styles.brandFeatureList}>
-                      <View style={styles.brandFeatureItem}>
-                        <View style={styles.brandFeatureIconBox}>
-                          <Text style={styles.brandFeatureEmoji}>🏢</Text>
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.brandFeatureTitle}>Status Ruang Kelas</Text>
-                          <Text style={styles.brandFeatureDesc}>
-                            Cek ketersediaan ruang kelas kosong secara real-time
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.brandFeatureItem}>
-                        <View style={styles.brandFeatureIconBox}>
-                          <Text style={styles.brandFeatureEmoji}>🛠️</Text>
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.brandFeatureTitle}>Laporan Fasilitas</Text>
-                          <Text style={styles.brandFeatureDesc}>
-                            Laporkan kendala sarana prasarana kampus dengan cepat
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.brandFeatureItem}>
-                        <View style={styles.brandFeatureIconBox}>
-                          <Text style={styles.brandFeatureEmoji}>🔒</Text>
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.brandFeatureTitle}>Keamanan Terenkripsi</Text>
-                          <Text style={styles.brandFeatureDesc}>
-                            Sesi dilindungi hardware-backed Expo SecureStore
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.brandBottomBadge}>
-                    <Text style={styles.brandBottomBadgeText}>
-                      🎓 Portal Akademik & Fasilitas Terpadu
-                    </Text>
-                  </View>
-                </View>
-
-                {/* KOLOM KANAN: FORM LOGIN & REGISTER */}
-                <View style={styles.splitFormSide}>
-                  {/* Mode Tab Switcher */}
-                  <View style={styles.authTabContainer}>
-                    <TouchableOpacity
-                      style={[styles.authTabButton, authMode === 'login' && styles.authTabButtonActive]}
-                      onPress={() => {
-                        setAuthMode('login');
-                        setAuthError('');
-                        setAuthSuccess('');
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Text
-                        style={[
-                          styles.authTabText,
-                          authMode === 'login' && styles.authTabTextActive,
-                        ]}
-                      >
-                        Masuk (Login)
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.authTabButton,
-                        authMode === 'register' && styles.authTabButtonActive,
-                      ]}
-                      onPress={() => {
-                        setAuthMode('register');
-                        setAuthError('');
-                        setAuthSuccess('');
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Text
-                        style={[
-                          styles.authTabText,
-                          authMode === 'register' && styles.authTabTextActive,
-                        ]}
-                      >
-                        Daftar Akun
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Header Form */}
-                  <Text style={styles.authFormTitle}>
-                    {authMode === 'login' ? 'Selamat Datang Kembali 👋' : 'Buat Akun Mahasiswa 🎓'}
-                  </Text>
-                  <Text style={styles.authFormSubtitle}>
-                    {authMode === 'login'
-                      ? 'Masuk menggunakan akun kampus Anda untuk melanjutkan'
-                      : 'Lengkapi data diri untuk mengakses seluruh layanan kampus'}
-                  </Text>
-
-                  {/* Banner Pesan / Alert */}
-                  {authError ? (
-                    <View style={styles.authErrorCard}>
-                      <Text style={styles.authErrorIcon}>⚠️</Text>
-                      <Text style={styles.authErrorText}>{authError}</Text>
-                    </View>
-                  ) : null}
-
-                  {authSuccess ? (
-                    <View style={styles.authSuccessCard}>
-                      <Text style={styles.authSuccessIcon}>✅</Text>
-                      <Text style={styles.authSuccessText}>{authSuccess}</Text>
-                    </View>
-                  ) : null}
-
-                  {/* Form Sesuai Tab Aktif */}
-                  {authMode === 'login' ? renderLoginForm() : renderRegisterForm()}
-
-                  {/* Storage Architecture Info */}
-                  <View style={styles.storageInfoBox}>
-                    <Text style={styles.storageInfoTitle}>Arsitektur Penyimpanan & Keamanan:</Text>
-                    {Platform.OS !== 'web' ? (
-                      <Text style={styles.storageInfoItem}>
-                        🔐 <Text style={{ fontWeight: '700' }}>SecureStore (Native):</Text> Token sesi disimpan aman terenkripsi (Android Keystore / iOS Keychain)
-                      </Text>
-                    ) : (
-                      <Text style={styles.storageInfoItem}>
-                        💻 <Text style={{ fontWeight: '700' }}>Expo Web (Development/Demo):</Text> In-memory session (SecureStore hanya didukung pada platform native Android/iOS; token tidak disimpan di localStorage/AsyncStorage)
-                      </Text>
-                    )}
-                    <Text style={styles.storageInfoItem}>
-                      📁 <Text style={{ fontWeight: '700' }}>AsyncStorage:</Text> Profil & riwayat pelaporan (Data Non-Sensitif)
-                    </Text>
-                    <Text style={styles.storageInfoItem}>
-                      🛡️ <Text style={{ fontWeight: '700' }}>Aturan Privasi:</Text> Password tidak pernah disimpan ke penyimpanan lokal ataupun log
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ) : (
-              // ============================================
-              // LAYAR KECIL (MOBILE): SINGLE-COLUMN LAYOUT
-              // ============================================
-              <View style={styles.mobileAuthContainer}>
-                {/* Header Brand */}
-                <View style={styles.authBrandHeader}>
-                  <View style={styles.authLogoCircle}>
-                    <Text style={styles.authLogoIcon}>🏫</Text>
-                  </View>
-                  <Text style={styles.authBrandTitle}>KampusCare</Text>
-                  <Text style={styles.authBrandSubtitle}>
-                    Sistem Pelayanan & Fasilitas Kampus Terpadu
-                  </Text>
-                </View>
-
-                {/* Mode Tab Switcher */}
-                <View style={styles.authTabContainer}>
-                  <TouchableOpacity
-                    style={[styles.authTabButton, authMode === 'login' && styles.authTabButtonActive]}
-                    onPress={() => {
-                      setAuthMode('login');
-                      setAuthError('');
-                      setAuthSuccess('');
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.authTabText,
-                        authMode === 'login' && styles.authTabTextActive,
-                      ]}
-                    >
-                      Masuk (Login)
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.authTabButton,
-                      authMode === 'register' && styles.authTabButtonActive,
-                    ]}
-                    onPress={() => {
-                      setAuthMode('register');
-                      setAuthError('');
-                      setAuthSuccess('');
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.authTabText,
-                        authMode === 'register' && styles.authTabTextActive,
-                      ]}
-                    >
-                      Daftar Akun
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Banner Pesan / Alert */}
-                {authError ? (
-                  <View style={styles.authErrorCard}>
-                    <Text style={styles.authErrorIcon}>⚠️</Text>
-                    <Text style={styles.authErrorText}>{authError}</Text>
-                  </View>
-                ) : null}
-
-                {authSuccess ? (
-                  <View style={styles.authSuccessCard}>
-                    <Text style={styles.authSuccessIcon}>✅</Text>
-                    <Text style={styles.authSuccessText}>{authSuccess}</Text>
-                  </View>
-                ) : null}
-
-                {/* Form Card */}
-                <View style={styles.authFormCard}>
-                  <Text style={styles.authFormTitle}>
-                    {authMode === 'login' ? 'Selamat Datang Kembali 👋' : 'Buat Akun Mahasiswa 🎓'}
-                  </Text>
-                  <Text style={styles.authFormSubtitle}>
-                    {authMode === 'login'
-                      ? 'Masuk menggunakan akun kampus Anda'
-                      : 'Lengkapi data diri untuk mengakses layanan kampus'}
-                  </Text>
-
-                  {authMode === 'login' ? renderLoginForm() : renderRegisterForm()}
-                </View>
-
-                {/* Storage Architecture Info */}
-                <View style={styles.storageInfoBox}>
-                  <Text style={styles.storageInfoTitle}>Arsitektur Penyimpanan & Keamanan:</Text>
-                  {Platform.OS !== 'web' ? (
-                    <Text style={styles.storageInfoItem}>
-                      🔐 <Text style={{ fontWeight: '700' }}>SecureStore (Native):</Text> Token sesi disimpan aman terenkripsi (Android Keystore / iOS Keychain)
-                    </Text>
-                  ) : (
-                    <Text style={styles.storageInfoItem}>
-                      💻 <Text style={{ fontWeight: '700' }}>Expo Web (Development/Demo):</Text> In-memory session (SecureStore hanya didukung pada platform native Android/iOS; token tidak disimpan di localStorage/AsyncStorage)
-                    </Text>
-                  )}
-                  <Text style={styles.storageInfoItem}>
-                    📁 <Text style={{ fontWeight: '700' }}>AsyncStorage:</Text> Profil & riwayat pelaporan (Data Non-Sensitif)
-                  </Text>
-                  <Text style={styles.storageInfoItem}>
-                    🛡️ <Text style={{ fontWeight: '700' }}>Aturan Privasi:</Text> Password tidak pernah disimpan ke penyimpanan lokal ataupun log
-                  </Text>
-                </View>
-              </View>
-            )}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+      <AuthScreen
+        authMode={authMode}
+        setAuthMode={setAuthMode}
+        authError={authError}
+        setAuthError={setAuthError}
+        authSuccess={authSuccess}
+        setAuthSuccess={setAuthSuccess}
+        loginEmail={loginEmail}
+        setLoginEmail={setLoginEmail}
+        loginPassword={loginPassword}
+        setLoginPassword={setLoginPassword}
+        regName={regName}
+        setRegName={setRegName}
+        regNim={regNim}
+        setRegNim={setRegNim}
+        regMajor={regMajor}
+        setRegMajor={setRegMajor}
+        regEmail={regEmail}
+        setRegEmail={setRegEmail}
+        regPassword={regPassword}
+        setRegPassword={setRegPassword}
+        regConfirmPassword={regConfirmPassword}
+        setRegConfirmPassword={setRegConfirmPassword}
+        isSubmitting={isSubmitting}
+        handleLogin={handleLogin}
+        handleRegister={handleRegister}
+        handleFillDemoAccount={handleFillDemoAccount}
+      />
     );
   }
 
   // ----------------------------------------------------
   // MAIN SCREENS (SETELAH TERAUTENTIKASI)
   // ----------------------------------------------------
+<<<<<<< HEAD
 
   // HomeScreen Component
   const renderHome = () => (
@@ -1277,46 +1061,27 @@ export default function App() {
     </ScrollView>
   );
 
+=======
+>>>>>>> 8f9221776dbf29317cb4c366df3cec294c7e121e
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
 
       {/* Dynamic Screen View */}
-      {activeTab === 'Home' && renderHome()}
-      {activeTab === 'Camera' && renderCamera()}
-      {activeTab === 'Profile' && renderProfile()}
+      {activeTab === 'Home' && <HomeScreen userProfile={userProfile} />}
+      {activeTab === 'Camera' && (
+        <CameraScreen handleCreateNewReport={handleCreateNewReport} />
+      )}
+      {activeTab === 'Profile' && (
+        <ProfileScreen
+          userProfile={userProfile}
+          reportHistory={reportHistory}
+          handleLogout={handleLogout}
+        />
+      )}
 
       {/* Modern Bottom Navigation */}
-      <View style={styles.bottomNavContainer}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => setActiveTab('Home')}
-        >
-          <Text style={[styles.navIcon, activeTab === 'Home' && styles.activeNavIcon]}>🏠</Text>
-          <Text style={[styles.navLabel, activeTab === 'Home' && styles.activeNavLabel]}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItemCamera}
-          onPress={() => setActiveTab('Camera')}
-          activeOpacity={0.85}
-        >
-          <View style={styles.cameraNavCircle}>
-            <Text style={styles.cameraNavIcon}>📷</Text>
-          </View>
-          <Text style={[styles.navLabel, activeTab === 'Camera' && styles.activeNavLabel, { marginTop: 4 }]}>
-            Camera
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => setActiveTab('Profile')}
-        >
-          <Text style={[styles.navIcon, activeTab === 'Profile' && styles.activeNavIcon]}>👤</Text>
-          <Text style={[styles.navLabel, activeTab === 'Profile' && styles.activeNavLabel]}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
     </SafeAreaView>
   );
 }
@@ -1338,6 +1103,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontWeight: '600',
   },
+<<<<<<< HEAD
 
   // ------------------------------------
   // RESPONSIVE AUTHENTICATION STYLES
@@ -2227,4 +1993,6 @@ const styles = StyleSheet.create({
     color: '#4F46E5',
     fontWeight: '700',
   },
+=======
+>>>>>>> 8f9221776dbf29317cb4c366df3cec294c7e121e
 });
