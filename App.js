@@ -14,6 +14,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   useWindowDimensions,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -86,14 +87,52 @@ const removeAuthToken = async () => {
 };
 
 // ============================================================================
-// 3. MOCK DATA INITIALIZATION
+// 3. API CONFIGURATION & STATUS MAPPER (TASK 03)
 // ============================================================================
-const mockClassrooms = [
-  { id: '1', name: 'Lab Komputer 1', building: 'Gedung A', status: 'kosong', capacity: 40 },
-  { id: '2', name: 'Ruang 204', building: 'Gedung B', status: 'digunakan', capacity: 35 },
-  { id: '3', name: 'Auditorium Utama', building: 'Gedung Rektorat', status: 'kosong', capacity: 150 },
-  { id: '4', name: 'Ruang 102', building: 'Gedung A', status: 'digunakan', capacity: 30 },
-];
+const ROOMS_API_URL = 'https://kampuscare-api.free.beeceptor.com/rooms';
+
+/**
+ * Mapping status ruang dari REST API sesuai spesifikasi Task 03:
+ * empty       → Kosong
+ * occupied    → Digunakan
+ * upcoming    → Akan Digunakan
+ * maintenance → Maintenance
+ */
+const mapRoomStatus = (status) => {
+  const normalized = (status || '').toString().toLowerCase().trim();
+  switch (normalized) {
+    case 'empty':
+      return {
+        label: 'Kosong',
+        bgColor: '#DCFCE7', // soft green
+        textColor: '#166534', // dark green
+      };
+    case 'occupied':
+      return {
+        label: 'Digunakan',
+        bgColor: '#FEE2E2', // soft red
+        textColor: '#991B1B', // dark red
+      };
+    case 'upcoming':
+      return {
+        label: 'Akan Digunakan',
+        bgColor: '#FEF3C7', // soft amber
+        textColor: '#92400E', // dark amber
+      };
+    case 'maintenance':
+      return {
+        label: 'Maintenance',
+        bgColor: '#F1F5F9', // soft slate
+        textColor: '#475569', // slate
+      };
+    default:
+      return {
+        label: status || '-',
+        bgColor: '#F3F4F6',
+        textColor: '#374151',
+      };
+  }
+};
 
 const mockReports = [
   { id: '1', title: 'AC Mati & Bising', location: 'Lab Komputer 1', status: 'Diproses', date: '22 Sep 2026', votes: 14 },
@@ -157,6 +196,55 @@ export default function App() {
   const [userProfile, setUserProfile] = useState(INITIAL_MOCK_USERS[0].profile);
   const [reportHistory, setReportHistory] = useState(INITIAL_REPORTS_HISTORY);
 
+  // API Rooms States (Task 03: fetch() -> response.json() -> React state)
+  const [rooms, setRooms] = useState([]);
+  const [isLoadingRooms, setIsLoadingRooms] = useState(true);
+  const [roomsError, setRoomsError] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch data ruang dari REST API
+  const fetchRooms = async () => {
+    setIsLoadingRooms(true);
+    setRoomsError(null);
+    try {
+      const response = await fetch(ROOMS_API_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP Error (${response.status})`);
+      }
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setRooms(data);
+      } else {
+        throw new Error('Format data ruangan tidak valid');
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      setRoomsError(error.message || 'Gagal terhubung ke server');
+    } finally {
+      setIsLoadingRooms(false);
+    }
+  };
+
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const response = await fetch(ROOMS_API_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP Error (${response.status})`);
+      }
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setRooms(data);
+        setRoomsError(null);
+      }
+    } catch (error) {
+      setRoomsError(error.message || 'Gagal terhubung ke server');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // ----------------------------------------------------
   // 1. VALIDASI SESI: OTENTIKASI BERGANTUNG PADA SESSION/TOKEN
   // ----------------------------------------------------
@@ -164,6 +252,7 @@ export default function App() {
   // Status login WAJIB divalidasi dari ketersediaan session token di SecureStore.
   useEffect(() => {
     checkActiveSession();
+    fetchRooms();
   }, []);
 
   const checkActiveSession = async () => {
@@ -939,7 +1028,18 @@ export default function App() {
 
   // HomeScreen Component
   const renderHome = () => (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={['#4F46E5']}
+          tintColor="#4F46E5"
+        />
+      }
+    >
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -952,7 +1052,11 @@ export default function App() {
       {/* Main Menu Shortcuts / Hero Cards */}
       <Text style={styles.sectionTitle}>Menu Utama</Text>
       <View style={styles.menuContainer}>
-        <TouchableOpacity style={[styles.menuCard, { backgroundColor: '#4F46E5' }]} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={[styles.menuCard, { backgroundColor: '#4F46E5' }]}
+          activeOpacity={0.8}
+          onPress={fetchRooms}
+        >
           <Text style={styles.menuIconText}>🏫</Text>
           <Text style={styles.menuCardTitle}>Ruang Kelas</Text>
           <Text style={styles.menuCardSubtitle}>Cek Status Ruangan Kosong</Text>
@@ -968,37 +1072,79 @@ export default function App() {
       {/* Status Ruang Kelas Section */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>Status Ruang Kelas</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={fetchRooms} activeOpacity={0.7}>
           <Text style={styles.seeAllText}>Lihat Semua</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-        {mockClassrooms.map((item) => (
-          <View key={item.id} style={styles.classroomCard}>
-            <View style={styles.cardHeaderRow}>
-              <Text style={styles.roomName}>{item.name}</Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  { backgroundColor: item.status === 'kosong' ? '#DCFCE7' : '#FEE2E2' },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.statusText,
-                    { color: item.status === 'kosong' ? '#166534' : '#991B1B' },
-                  ]}
-                >
-                  {item.status === 'kosong' ? 'Kosong' : 'Digunakan'}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.roomBuilding}>{item.building}</Text>
-            <Text style={styles.roomCapacity}>Kapasitas: {item.capacity} Kursi</Text>
+      {/* Loading State */}
+      {isLoadingRooms ? (
+        <View style={styles.roomLoadingContainer}>
+          <ActivityIndicator size="small" color="#4F46E5" />
+          <Text style={styles.roomLoadingText}>Memuat ketersediaan ruangan...</Text>
+        </View>
+      ) : roomsError ? (
+        /* Error State + Retry */
+        <View style={styles.roomErrorContainer}>
+          <Text style={styles.roomErrorIcon}>⚠️</Text>
+          <View style={styles.roomErrorTextContainer}>
+            <Text style={styles.roomErrorTitle}>Gagal Memuat Data Ruangan</Text>
+            <Text style={styles.roomErrorMessage}>{roomsError}</Text>
           </View>
-        ))}
-      </ScrollView>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={fetchRooms}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.retryButtonText}>Coba Lagi</Text>
+          </TouchableOpacity>
+        </View>
+      ) : rooms.length === 0 ? (
+        /* Empty State */
+        <View style={styles.roomEmptyContainer}>
+          <Text style={styles.roomEmptyIcon}>📭</Text>
+          <Text style={styles.roomEmptyTitle}>Tidak Ada Data Ruangan</Text>
+          <Text style={styles.roomEmptyText}>Saat ini belum ada data ruangan yang tersedia.</Text>
+          <TouchableOpacity
+            style={styles.emptyRetryButton}
+            onPress={fetchRooms}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.emptyRetryButtonText}>Muat Ulang</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        /* Data Ruangan dari REST API */
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+          {rooms.map((item) => {
+            const statusInfo = mapRoomStatus(item.status);
+            return (
+              <View key={item.id} style={styles.classroomCard}>
+                <View style={styles.cardHeaderRow}>
+                  <Text style={styles.roomName} numberOfLines={1}>{item.name}</Text>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { backgroundColor: statusInfo.bgColor },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusText,
+                        { color: statusInfo.textColor },
+                      ]}
+                    >
+                      {statusInfo.label}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.roomBuilding}>📍 {item.location}</Text>
+                <Text style={styles.roomCapacity}>Kapasitas: {item.capacity} Kursi</Text>
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
 
       {/* Laporan Kerusakan Teratas */}
       <View style={styles.sectionHeaderRow}>
@@ -1659,14 +1805,14 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     marginRight: 12,
-    width: 180,
+    width: 200,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 8,
   },
   roomName: {
@@ -1674,6 +1820,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0F172A',
     flex: 1,
+    marginRight: 6,
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -1692,6 +1839,100 @@ const styles = StyleSheet.create({
   roomCapacity: {
     fontSize: 12,
     color: '#94A3B8',
+  },
+  roomLoadingContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+    minHeight: 110,
+    gap: 8,
+  },
+  roomLoadingText: {
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  roomErrorContainer: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 4,
+    gap: 12,
+  },
+  roomErrorIcon: {
+    fontSize: 24,
+  },
+  roomErrorTextContainer: {
+    flex: 1,
+  },
+  roomErrorTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#991B1B',
+  },
+  roomErrorMessage: {
+    fontSize: 11,
+    color: '#B91C1C',
+    marginTop: 2,
+  },
+  retryButton: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  roomEmptyContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+    minHeight: 110,
+  },
+  roomEmptyIcon: {
+    fontSize: 26,
+    marginBottom: 6,
+  },
+  roomEmptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  roomEmptyText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  emptyRetryButton: {
+    marginTop: 10,
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  emptyRetryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   reportCard: {
     backgroundColor: '#FFFFFF',
