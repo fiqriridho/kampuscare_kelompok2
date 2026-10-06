@@ -6,22 +6,51 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
-import { mockClassrooms, mockReports } from '../constants/mockData';
+import { mockReports } from '../constants/mockData';
 import ClassroomCard from '../components/ClassroomCard';
 import ReportCard from '../components/ReportCard';
+import useRooms from '../hooks/useRooms';
 
 export default function HomeScreen({ userProfile }) {
+  const {
+    rooms,
+    isLoadingRooms,
+    roomsError,
+    isRefreshing,
+    fetchRooms,
+    handleRefresh,
+  } = useRooms();
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={['#4F46E5']}
+          tintColor="#4F46E5"
+        />
+      }
+    >
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greetingText}>Halo, {userProfile?.name || 'Mahasiswa'} 👋</Text>
+          <Text style={styles.greetingText}>
+            Halo, {userProfile?.name || 'Mahasiswa'} 👋
+          </Text>
           <Text style={styles.brandTitle}>KampusCare</Text>
         </View>
         <Image
-          source={{ uri: userProfile?.avatar || 'https://krs.umm.ac.id/Poto/2024/202410370110167.JPG' }}
+          source={{
+            uri:
+              userProfile?.avatar ||
+              'https://krs.umm.ac.id/Poto/2024/202410370110167.JPG',
+          }}
           style={styles.headerAvatar}
         />
       </View>
@@ -29,13 +58,20 @@ export default function HomeScreen({ userProfile }) {
       {/* Main Menu Shortcuts / Hero Cards */}
       <Text style={styles.sectionTitle}>Menu Utama</Text>
       <View style={styles.menuContainer}>
-        <TouchableOpacity style={[styles.menuCard, { backgroundColor: '#4F46E5' }]} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={[styles.menuCard, { backgroundColor: '#4F46E5' }]}
+          activeOpacity={0.8}
+          onPress={fetchRooms}
+        >
           <Text style={styles.menuIconText}>🏫</Text>
           <Text style={styles.menuCardTitle}>Ruang Kelas</Text>
           <Text style={styles.menuCardSubtitle}>Cek Status Ruangan Kosong</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.menuCard, { backgroundColor: '#0EA5E9' }]} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={[styles.menuCard, { backgroundColor: '#0EA5E9' }]}
+          activeOpacity={0.8}
+        >
           <Text style={styles.menuIconText}>🛠️</Text>
           <Text style={styles.menuCardTitle}>Fasilitas & Laporan</Text>
           <Text style={styles.menuCardSubtitle}>Laporkan Kerusakan Kampus</Text>
@@ -45,16 +81,61 @@ export default function HomeScreen({ userProfile }) {
       {/* Status Ruang Kelas Section */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>Status Ruang Kelas</Text>
-        <TouchableOpacity>
-          <Text style={styles.seeAllText}>Lihat Semua</Text>
+        <TouchableOpacity onPress={fetchRooms} activeOpacity={0.7}>
+          <Text style={styles.seeAllText}>Muat Ulang</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-        {mockClassrooms.map((item) => (
-          <ClassroomCard key={item.id} item={item} />
-        ))}
-      </ScrollView>
+      {/* Loading State */}
+      {isLoadingRooms ? (
+        <View style={styles.roomLoadingContainer}>
+          <ActivityIndicator size="small" color="#4F46E5" />
+          <Text style={styles.roomLoadingText}>Memuat ketersediaan ruangan...</Text>
+        </View>
+      ) : roomsError ? (
+        /* Error State + Retry */
+        <View style={styles.roomErrorContainer}>
+          <Text style={styles.roomErrorIcon}>⚠️</Text>
+          <View style={styles.roomErrorTextContainer}>
+            <Text style={styles.roomErrorTitle}>Gagal Memuat Data Ruangan</Text>
+            <Text style={styles.roomErrorMessage}>{roomsError}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={fetchRooms}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.retryButtonText}>Coba Lagi</Text>
+          </TouchableOpacity>
+        </View>
+      ) : rooms.length === 0 ? (
+        /* Empty State */
+        <View style={styles.roomEmptyContainer}>
+          <Text style={styles.roomEmptyIcon}>📭</Text>
+          <Text style={styles.roomEmptyTitle}>Tidak Ada Data Ruangan</Text>
+          <Text style={styles.roomEmptyText}>
+            Saat ini belum ada data ruangan yang tersedia.
+          </Text>
+          <TouchableOpacity
+            style={styles.emptyRetryButton}
+            onPress={fetchRooms}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.emptyRetryButtonText}>Muat Ulang</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        /* Data Ruangan dari REST API */
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.horizontalScroll}
+        >
+          {rooms.map((item) => (
+            <ClassroomCard key={item.id} item={item} />
+          ))}
+        </ScrollView>
+      )}
 
       {/* Laporan Kerusakan Teratas */}
       <View style={styles.sectionHeaderRow}>
@@ -151,5 +232,99 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     marginHorizontal: -20,
     paddingHorizontal: 20,
+  },
+  roomLoadingContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+    minHeight: 110,
+    gap: 8,
+  },
+  roomLoadingText: {
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  roomErrorContainer: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 4,
+    gap: 12,
+  },
+  roomErrorIcon: {
+    fontSize: 24,
+  },
+  roomErrorTextContainer: {
+    flex: 1,
+  },
+  roomErrorTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#991B1B',
+  },
+  roomErrorMessage: {
+    fontSize: 11,
+    color: '#B91C1C',
+    marginTop: 2,
+  },
+  retryButton: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  roomEmptyContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+    minHeight: 110,
+  },
+  roomEmptyIcon: {
+    fontSize: 26,
+    marginBottom: 6,
+  },
+  roomEmptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  roomEmptyText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  emptyRetryButton: {
+    marginTop: 10,
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  emptyRetryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
