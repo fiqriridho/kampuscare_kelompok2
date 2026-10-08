@@ -1,6 +1,8 @@
 import React from 'react';
-import { rooms } from '../data/room'; 
-const ubahStatus = (status: "empty" | "occupied" | "upcoming" | "maintenance") => {
+import { View, Text, ScrollView } from 'react-native';
+import { rooms, RoomStatus } from '../data/room'; 
+
+export const ubahStatus = (status: RoomStatus): string => {
   switch (status) {
     case "empty":
       return "kosong";
@@ -15,21 +17,19 @@ const ubahStatus = (status: "empty" | "occupied" | "upcoming" | "maintenance") =
   }
 };
 
-const RoomList = () => {
+export const RoomList = () => {
   return (
-    <div>
-      <h2>Daftar Ruangan</h2>
-      <ul>
-        {rooms.map((room) => (
-          <li key={room.id}>
-            <strong>{room.name}</strong> ({room.building}) - Kapasitas: {room.capacity}
-            <br />
-            Status: {ubahStatus(room.status)}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ScrollView>
+      <Text>Daftar Ruangan</Text>
+      
+      {rooms.map((room) => (
+        <View key={room.id}>
+          <Text>{room.name}</Text>
+          <Text>Gedung: {room.building}</Text>
+          <Text>Kapasitas: {room.capacity} orang</Text>
+          <Text>Status: {ubahStatus(room.status)}</Text>
+        </View>
+      ))}
+    </ScrollView>
   );
 };
-
-export default RoomList;
