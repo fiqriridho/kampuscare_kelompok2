@@ -63,7 +63,16 @@ export const useRooms = () => {
       }
       const data = await response.json();
       if (Array.isArray(data)) {
-        setRooms(data);
+        // Mapping JSON response ke Data Model Room
+        const mappedRooms = data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          status: item.status,
+          capacity: item.capacity,
+          location: item.location,
+          facilities: item.facilities,
+        }));
+        setRooms(mappedRooms);
       } else {
         throw new Error('Format data ruangan tidak valid');
       }
@@ -84,7 +93,16 @@ export const useRooms = () => {
       }
       const data = await response.json();
       if (Array.isArray(data)) {
-        setRooms(data);
+        // Mapping JSON response ke Data Model Room
+        const mappedRooms = data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          status: item.status,
+          capacity: item.capacity,
+          location: item.location,
+          facilities: item.facilities,
+        }));
+        setRooms(mappedRooms);
         setRoomsError(null);
       }
     } catch (error) {
