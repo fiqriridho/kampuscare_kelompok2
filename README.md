@@ -193,6 +193,8 @@ Untuk masuk ke aplikasi, gunakan akun dummy yang telah terdaftar di database bac
    - Endpoint ruangan dilindungi oleh `authMiddleware`.
    - Frontend menyertakan token aktif untuk mengambil daftar ruangan kampus secara real-time.
    - Dilengkapi fitur *Pull-to-Refresh* dan penanganan status ruangan: Kosong (*Empty*), Digunakan (*Occupied*), Akan Digunakan (*Upcoming*), dan Maintenance.
+   - Permintaan awal menampilkan indikator "Memuat data... Mohon tunggu sebentar". Jika permintaan gagal karena jaringan, layar status ruangan menampilkan ikon offline dan pesan "Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.".
+   - Tombol **Coba Lagi** dan *pull-to-refresh* mengirim ulang permintaan `GET /api/rooms`; data dirender kembali setelah backend dapat dijangkau.
 
 4. **Logout & Blacklist (`POST /api/auth/logout`)**:
    - Pengguna menekan tombol Logout pada layar Profil.

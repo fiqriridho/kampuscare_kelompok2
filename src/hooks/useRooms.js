@@ -49,15 +49,37 @@ export const mapRoomStatus = (status) => {
   }
 };
 
+const OFFLINE_ERROR_MESSAGE =
+  'Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.';
+
+const isNetworkError = (error) => {
+  const message = error instanceof Error ? error.message : String(error || '');
+  return /network request failed|failed to fetch|fetch failed|networkerror|internet disconnected|network is unreachable|connection (?:refused|reset|timed out)|err_connection_(?:refused|reset|timed_out)/i.test(
+    message
+  );
+};
+
+const getRoomsErrorMessage = (error) => {
+  if (isNetworkError(error)) {
+    return OFFLINE_ERROR_MESSAGE;
+  }
+
+  return error instanceof Error && error.message
+    ? error.message
+    : 'Gagal terhubung ke server.';
+};
+
 export const useRooms = () => {
   const [rooms, setRooms] = useState([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
   const [roomsError, setRoomsError] = useState(null);
+  const [isOffline, setIsOffline] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchRooms = async () => {
     setIsLoadingRooms(true);
     setRoomsError(null);
+    setIsOffline(false);
     try {
       const token = await getAuthToken();
       if (!token) {
@@ -96,12 +118,14 @@ export const useRooms = () => {
           facilities: item.facilities,
         }));
         setRooms(mappedRooms);
+        setIsOffline(false);
       } else {
         throw new Error('Format data ruangan tidak valid dari server');
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
-      setRoomsError(error.message || 'Gagal terhubung ke server');
+      setIsOffline(isNetworkError(error));
+      setRoomsError(getRoomsErrorMessage(error));
     } finally {
       setIsLoadingRooms(false);
     }
@@ -109,6 +133,8 @@ export const useRooms = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    setRoomsError(null);
+    setIsOffline(false);
     try {
       const token = await getAuthToken();
       if (!token) {
@@ -148,9 +174,14 @@ export const useRooms = () => {
         }));
         setRooms(mappedRooms);
         setRoomsError(null);
+        setIsOffline(false);
+      } else {
+        throw new Error('Format data ruangan tidak valid dari server');
       }
     } catch (error) {
-      setRoomsError(error.message || 'Gagal terhubung ke server');
+      console.error('Error refreshing rooms:', error);
+      setIsOffline(isNetworkError(error));
+      setRoomsError(getRoomsErrorMessage(error));
     } finally {
       setIsRefreshing(false);
     }
@@ -165,6 +196,7 @@ export const useRooms = () => {
     rooms,
     isLoadingRooms,
     roomsError,
+    isOffline,
     isRefreshing,
     fetchRooms,
     handleRefresh,

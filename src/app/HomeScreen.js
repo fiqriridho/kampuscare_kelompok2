@@ -19,6 +19,7 @@ export default function HomeScreen({ userProfile }) {
     rooms,
     isLoadingRooms,
     roomsError,
+    isOffline,
     isRefreshing,
     fetchRooms,
     handleRefresh,
@@ -90,20 +91,25 @@ export default function HomeScreen({ userProfile }) {
       {isLoadingRooms ? (
         <View style={styles.roomLoadingContainer}>
           <ActivityIndicator size="small" color="#4F46E5" />
-          <Text style={styles.roomLoadingText}>Memuat ketersediaan ruangan...</Text>
+          <Text style={styles.roomLoadingText}>
+            Memuat data... Mohon tunggu sebentar
+          </Text>
         </View>
       ) : roomsError ? (
         /* Error State + Retry */
         <View style={styles.roomErrorContainer}>
-          <Text style={styles.roomErrorIcon}>⚠️</Text>
           <View style={styles.roomErrorTextContainer}>
-            <Text style={styles.roomErrorTitle}>Gagal Memuat Data Ruangan</Text>
+            <Text style={styles.roomErrorTitle}>
+              {isOffline ? 'Anda Sedang Offline' : 'Gagal Memuat Data Ruangan'}
+            </Text>
             <Text style={styles.roomErrorMessage}>{roomsError}</Text>
           </View>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={fetchRooms}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Coba Lagi memuat data ruangan"
           >
             <Text style={styles.retryButtonText}>Coba Lagi</Text>
           </TouchableOpacity>
@@ -255,38 +261,39 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#FECACA',
-    padding: 16,
-    flexDirection: 'row',
+    padding: 20,
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginVertical: 4,
     gap: 12,
   },
   roomErrorIcon: {
-    fontSize: 24,
+    fontSize: 32,
   },
   roomErrorTextContainer: {
-    flex: 1,
+    alignItems: 'center',
   },
   roomErrorTitle: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: '#991B1B',
+    textAlign: 'center',
   },
   roomErrorMessage: {
-    fontSize: 11,
+    fontSize: 13,
     color: '#B91C1C',
-    marginTop: 2,
+    marginTop: 4,
+    textAlign: 'center',
+    lineHeight: 19,
   },
   retryButton: {
     backgroundColor: '#DC2626',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   retryButtonText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
   },
   roomEmptyContainer: {
