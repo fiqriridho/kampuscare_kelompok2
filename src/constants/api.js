@@ -5,59 +5,69 @@ import Constants from 'expo-constants';
  * ============================================================================
  * KONFIGURASI API & BASE URL BACKEND KAMPUSCARE
  * ============================================================================
- * Mendeteksi base URL backend secara dinamis berdasarkan platform dan konfigurasi.
- *
- * Prioritas Resolusi:
- * 1. process.env.EXPO_PUBLIC_API_URL (jika disetel di .env / .env.local)
- * 2. Platform-specific auto detection:
- *    - Expo Web: http://localhost:3000
- *    - Android Native:
- *      - Jika dijalankan melalui Expo Go / Metro di HP fisik: otomatis mengambil IP host Metro bundler (http://<ip>:3000)
- *      - Jika di Android Emulator (AVD): http://10.0.2.2:3000
- *    - iOS Simulator: http://localhost:3000
- * 3. Fallback: http://localhost:3000
+ * Mendeteksi base URL backend secara dinamis dan cerdas untuk berbagai platform:
+ * - Web Browser       : http://localhost:3000 (atau IP lokal)
+ * - HP Android Fisik  : Otomatis mendeteksi IP Wi-Fi host Metro (e.g. http://172.16.42.42:3000)
+ * - Android Emulator  : http://10.0.2.2:3000 (alias localhost host machine di AVD)
  * ============================================================================
  */
-export const getApiBaseUrl = () => {
-  // 1. Prioritaskan environment variable EXPO_PUBLIC_API_URL jika tersedia
-  const envUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
-    return envUrl.trim().replace(/\/+$/, '');
-  }
 
-  // 2. Platform Web (Browser)
+/**
+ * Mengambil IP host dari Metro Bundler saat berjalan di Expo Go / Development
+ */
+const getMetroHostIp = () => {
+  const hostUri =
+    Constants.expoConfig?.hostUri ||
+    Constants.manifest2?.extra?.expoClient?.hostUri;
+
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+      return ip;
+    }
+  }
+  return null;
+};
+
+export const getApiBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  const cleanEnvUrl = envUrl && typeof envUrl === 'string' ? envUrl.trim().replace(/\/+$/, '') : '';
+
+  // 1. Pada platform Web (Browser di PC / Laptop)
   if (Platform.OS === 'web') {
+    if (cleanEnvUrl) {
+      return cleanEnvUrl;
+    }
     return 'http://localhost:3000';
   }
 
-  // 3. Platform Android Native
+  // 2. Pada platform Native (Android & iOS)
+  // PERHATIKAN: 'localhost' atau '127.0.0.1' di perangkat native merujuk ke ponsel itu sendiri.
+  // Jika EXPO_PUBLIC_API_URL diatur ke localhost, kita konversikan secara cerdas ke IP laptop/PC.
+  const isLocalhostEnv =
+    cleanEnvUrl.includes('localhost') || cleanEnvUrl.includes('127.0.0.1');
+
+  if (cleanEnvUrl && !isLocalhostEnv) {
+    // Pengguna telah menetapkan IP spesifik (contoh: http://172.16.42.42:3000)
+    return cleanEnvUrl;
+  }
+
+  // Coba ambil IP host Wi-Fi dari Metro bundler (cocok untuk Expo Go di HP fisik)
+  const metroIp = getMetroHostIp();
+  if (metroIp) {
+    // Ambil port dari cleanEnvUrl jika ada, atau default ke 3000
+    const portMatch = cleanEnvUrl.match(/:(\d+)$/);
+    const port = portMatch ? portMatch[1] : '3000';
+    return `http://${metroIp}:${port}`;
+  }
+
+  // Fallback jika di Android Emulator (AVD)
   if (Platform.OS === 'android') {
-    // Cek apakah ada hostUri dari Metro bundler (Expo Go / Dev Client di HP fisik)
-    const hostUri = Constants.expoConfig?.hostUri;
-    if (hostUri) {
-      const ip = hostUri.split(':')[0];
-      if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
-        return `http://${ip}:3000`;
-      }
-    }
-    // Default Android Emulator (10.0.2.2 memetakan ke localhost komputer host)
     return 'http://10.0.2.2:3000';
   }
 
-  // 4. Platform iOS Simulator
-  if (Platform.OS === 'ios') {
-    const hostUri = Constants.expoConfig?.hostUri;
-    if (hostUri) {
-      const ip = hostUri.split(':')[0];
-      if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
-        return `http://${ip}:3000`;
-      }
-    }
-    return 'http://localhost:3000';
-  }
-
-  // Default Fallback
-  return 'http://localhost:3000';
+  // Fallback default
+  return cleanEnvUrl || 'http://localhost:3000';
 };
 
 /**
