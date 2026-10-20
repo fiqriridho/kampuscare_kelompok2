@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { getApiBaseUrl, API_ENDPOINTS } from '../constants/api';
+import { getAuthToken } from './useAuth';
 
-export const ROOMS_API_URL = 'https://kampuscare-api.free.beeceptor.com/rooms';
+export const ROOMS_API_URL = `${getApiBaseUrl()}${API_ENDPOINTS.ROOMS}`;
 
 /**
  * Mapping status ruang dari REST API sesuai spesifikasi Task 03:
@@ -57,10 +59,31 @@ export const useRooms = () => {
     setIsLoadingRooms(true);
     setRoomsError(null);
     try {
-      const response = await fetch(ROOMS_API_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP Error (${response.status})`);
+      const token = await getAuthToken();
+      if (!token) {
+        throw new Error('Token otentikasi tidak ditemukan. Silakan login terlebih dahulu.');
       }
+
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}${API_ENDPOINTS.ROOMS}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(
+          errorJson.error || 'Sesi telah kedaluwarsa atau token tidak valid. Silakan login kembali.'
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error (${response.status}) saat mengambil data ruangan`);
+      }
+
       const data = await response.json();
       if (Array.isArray(data)) {
         // Mapping JSON response ke Data Model Room
@@ -74,7 +97,7 @@ export const useRooms = () => {
         }));
         setRooms(mappedRooms);
       } else {
-        throw new Error('Format data ruangan tidak valid');
+        throw new Error('Format data ruangan tidak valid dari server');
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
@@ -87,10 +110,31 @@ export const useRooms = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      const response = await fetch(ROOMS_API_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP Error (${response.status})`);
+      const token = await getAuthToken();
+      if (!token) {
+        throw new Error('Token otentikasi tidak ditemukan. Silakan login terlebih dahulu.');
       }
+
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}${API_ENDPOINTS.ROOMS}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(
+          errorJson.error || 'Sesi telah kedaluwarsa atau token tidak valid. Silakan login kembali.'
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error (${response.status}) saat menyegarkan data ruangan`);
+      }
+
       const data = await response.json();
       if (Array.isArray(data)) {
         // Mapping JSON response ke Data Model Room
@@ -111,6 +155,7 @@ export const useRooms = () => {
       setIsRefreshing(false);
     }
   };
+
 
   useEffect(() => {
     fetchRooms();

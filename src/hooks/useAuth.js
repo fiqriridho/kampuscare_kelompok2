@@ -11,6 +11,7 @@ import {
   INITIAL_MOCK_USERS,
   INITIAL_REPORTS_HISTORY,
 } from '../constants/mockData';
+import { getApiBaseUrl, API_ENDPOINTS } from '../constants/api';
 
 // ============================================================================
 // HELPER SECURE STORE (ANDROID & IOS NATIVE) & IN-MEMORY WEB FALLBACK
@@ -125,26 +126,59 @@ export const useAuth = () => {
       const token = await getAuthToken();
 
       // VALIDASI KRUSIAL: Jika token tidak ada / kosong, user TIDAK authenticated
-      // meskipun data profil atau riwayat masih ada di AsyncStorage.
       if (!token || typeof token !== 'string' || token.trim() === '') {
         setIsAuthenticated(false);
         setIsLoadingSession(false);
         return;
       }
 
-      // Langkah 2: Token valid ditemukan -> Ambil data non-sensitif dari AsyncStorage
-      const storedProfile = await AsyncStorage.getItem(ASYNC_PROFILE_KEY);
-      const storedHistory = await AsyncStorage.getItem(ASYNC_HISTORY_KEY);
+      // Langkah 2: Verifikasi token ke endpoint backend (GET /api/auth/me)
+      const baseUrl = getApiBaseUrl();
+      try {
+        const response = await fetch(`${baseUrl}${API_ENDPOINTS.ME}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        });
 
-      if (storedProfile) {
-        setUserProfile(JSON.parse(storedProfile));
-      }
-      if (storedHistory) {
-        setReportHistory(JSON.parse(storedHistory));
-      }
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.user) {
+            setUserProfile(data.user);
+            await AsyncStorage.setItem(ASYNC_PROFILE_KEY, JSON.stringify(data.user));
+          }
+          const storedHistory = await AsyncStorage.getItem(ASYNC_HISTORY_KEY);
+          if (storedHistory) {
+            setReportHistory(JSON.parse(storedHistory));
+          }
+          setIsAuthenticated(true);
+          return;
+        }
 
-      // Set authenticated HANYA karena token sesi terverifikasi
-      setIsAuthenticated(true);
+        // Jika backend menolak token (401 Unauthorized / Token Expired / Blacklisted)
+        if (response.status === 401 || response.status === 403 || response.status === 404) {
+          console.warn('Sesi tidak valid atau telah kedaluwarsa di backend (401). Membersihkan token.');
+          await removeAuthToken();
+          setIsAuthenticated(false);
+          return;
+        }
+      } catch (netErr) {
+        // Jika server backend offline saat startup, gunakan cache offline jika token ada
+        console.warn('Tidak dapat menghubungi server auth saat ini, menggunakan cache:', netErr);
+        const storedProfile = await AsyncStorage.getItem(ASYNC_PROFILE_KEY);
+        const storedHistory = await AsyncStorage.getItem(ASYNC_HISTORY_KEY);
+
+        if (storedProfile) {
+          setUserProfile(JSON.parse(storedProfile));
+        }
+        if (storedHistory) {
+          setReportHistory(JSON.parse(storedHistory));
+        }
+        setIsAuthenticated(true);
+        return;
+      }
     } catch (error) {
       console.error('Error saat verifikasi sesi', error);
       setIsAuthenticated(false);
@@ -179,53 +213,71 @@ export const useAuth = () => {
     setIsSubmitting(true);
 
     try {
-      // Validasi 3: Pencocokan Mock Credentials (In-Memory Runtime)
-      const user = usersList.find(
-        (u) =>
-          u.email.toLowerCase() === emailTrimmed.toLowerCase() &&
-          u.password === passwordTrimmed
-      );
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}${API_ENDPOINTS.LOGIN}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          email: emailTrimmed,
+          password: passwordTrimmed,
+        }),
+      });
 
-      if (!user) {
-        setAuthError('Email atau kata sandi salah. Silakan periksa kembali!');
-        setIsSubmitting(false);
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.token) {
+        // 1. Simpan token JWT ke SecureStore (native) atau in-memory (web)
+        await saveAuthToken(data.token);
+
+        // 2. Simpan profil user non-sensitif ke AsyncStorage
+        const profile = data.user || {
+          name: 'Mahasiswa',
+          email: emailTrimmed,
+          nim: '-',
+          major: '-',
+        };
+        await AsyncStorage.setItem(ASYNC_PROFILE_KEY, JSON.stringify(profile));
+
+        // 3. Pastikan history pelaporan ada di AsyncStorage
+        const storedHistory = await AsyncStorage.getItem(ASYNC_HISTORY_KEY);
+        if (!storedHistory) {
+          await AsyncStorage.setItem(ASYNC_HISTORY_KEY, JSON.stringify(INITIAL_REPORTS_HISTORY));
+          setReportHistory(INITIAL_REPORTS_HISTORY);
+        } else {
+          setReportHistory(JSON.parse(storedHistory));
+        }
+
+        // Update state aplikasi
+        setUserProfile(profile);
+        setIsAuthenticated(true);
+        setActiveTab('Home');
+
+        // Reset form login
+        setLoginEmail('');
+        setLoginPassword('');
         return;
       }
 
-      // Credential Benar -> Buat Mock Session Token
-      const mockSessionToken = `kc_token_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-      // 1. Simpan token ke SecureStore (pada native) atau in-memory (web demo)
-      // JANGAN menyimpan token ke AsyncStorage atau localStorage
-      await saveAuthToken(mockSessionToken);
-
-      // 2. Simpan HANYA data profil non-sensitif ke AsyncStorage (Password TIDAK disimpan)
-      await AsyncStorage.setItem(ASYNC_PROFILE_KEY, JSON.stringify(user.profile));
-
-      // 3. Pastikan history pelaporan ada di AsyncStorage
-      const storedHistory = await AsyncStorage.getItem(ASYNC_HISTORY_KEY);
-      if (!storedHistory) {
-        await AsyncStorage.setItem(ASYNC_HISTORY_KEY, JSON.stringify(INITIAL_REPORTS_HISTORY));
-        setReportHistory(INITIAL_REPORTS_HISTORY);
-      } else {
-        setReportHistory(JSON.parse(storedHistory));
+      // Validasi Gagal dari backend (400 / 401)
+      if (response.status === 400 || response.status === 401) {
+        setAuthError(data.error || 'Email atau kata sandi salah. Silakan periksa kembali!');
+        return;
       }
 
-      // Update state aplikasi (authenticated bergantung pada token)
-      setUserProfile(user.profile);
-      setIsAuthenticated(true);
-      setActiveTab('Home');
-
-      // Reset form login
-      setLoginEmail('');
-      setLoginPassword('');
+      setAuthError(data.error || `Terjadi kesalahan saat masuk (${response.status})`);
     } catch (err) {
       console.error('Error saat proses autentikasi', err);
-      setAuthError('Terjadi kesalahan saat masuk. Coba lagi.');
+      setAuthError(
+        `Gagal terhubung ke server backend (${getApiBaseUrl()}). Pastikan server backend telah aktif.`
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   // ----------------------------------------------------
   // 3. LOGIKA REGISTER & VALIDASI
@@ -345,17 +397,35 @@ export const useAuth = () => {
   const handleLogout = async () => {
     const performLogoutAction = async () => {
       try {
-        // 1. Hapus token sesi dari SecureStore (dan reset in-memory web token)
+        const token = await getAuthToken();
+
+        // 1. Panggil endpoint POST /api/auth/logout untuk mencabut token (Blacklist di backend)
+        if (token) {
+          try {
+            const baseUrl = getApiBaseUrl();
+            await fetch(`${baseUrl}${API_ENDPOINTS.LOGOUT}`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json',
+              },
+            });
+          } catch (logoutApiErr) {
+            console.warn('Gagal memanggil endpoint logout backend:', logoutApiErr);
+          }
+        }
+
+        // 2. Hapus token sesi dari SecureStore (dan reset in-memory web token)
         await removeAuthToken();
 
-        // 2. Reset authentication state pada aplikasi
+        // 3. Reset authentication state pada aplikasi
         setIsAuthenticated(false);
         setActiveTab('Home');
         setAuthMode('login');
         setAuthError('');
         setAuthSuccess('');
 
-        showAlert('Logout Berhasil', 'Token sesi Anda telah dihapus.');
+        showAlert('Logout Berhasil', 'Sesi telah ditutup dan token telah dicabut.');
       } catch (error) {
         console.error('Error saat proses logout', error);
       }
