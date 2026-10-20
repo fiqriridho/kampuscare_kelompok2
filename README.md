@@ -56,16 +56,31 @@ Salin file environment dari `.env.example`:
   cp .env.example .env
   ```
 
-Periksa isi file `.env`:
+Periksa isi file `.env` pada backend:
 ```env
 PORT=3000
-JWT_SECRET=your_super_secret_jwt_key_at_least_32_characters_long
+JWT_SECRET=hasil_secret_yang_dihasilkan
 JWT_EXPIRES_IN=1h
 REDIS_URL=redis://localhost:6379
 ```
 
+#### Generate `JWT_SECRET` Backend Sendiri
+Buka terminal di folder backend `kampus-care-backend`, lalu jalankan perintah berikut untuk menghasilkan secret acak kriptografis yang kuat (32 bytes / 64 karakter hex):
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Salin hasil string tersebut ke dalam file `.env` backend pada baris `JWT_SECRET`.
+
+> [!WARNING]
+> **Peringatan Keamanan Backend**:
+> - **Wajib generate secret sendiri**: Jangan pernah menggunakan nilai contoh atau placeholder sebagai secret di lingkungan sebenarnya.
+> - **Jangan commit `.env` ke GitHub/Git**: Pastikan file `.env` selalu masuk dalam `.gitignore` agar rahasia dan kredensial tidak bocor ke publik.
+> - **Restart backend setelah mengubah konfigurasi**: Server backend harus di-restart setiap kali file `.env` diperbarui agar konfigurasi baru dapat dimuat.
+
 > [!NOTE]
-> **Redis bersifat opsional!** Jika Redis server lokal tidak aktif, backend otomatis menggunakan *in-memory storage fallback* untuk token blacklist tanpa menghasilkan error.
+> **Redis bersifat opsional!** Jika Redis server lokal tidak aktif (`REDIS_URL`), backend otomatis menggunakan *in-memory storage fallback* untuk token blacklist tanpa menghasilkan error.
 
 Jalankan server backend:
 
