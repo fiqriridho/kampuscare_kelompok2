@@ -5,6 +5,7 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -128,6 +129,7 @@ export default function LaporanKerusakanScreen() {
 
   return (
     <SafeAreaView style={globalStyles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -377,21 +379,33 @@ export default function LaporanKerusakanScreen() {
 
 const customStyles = StyleSheet.create({
   heroBanner: {
-    backgroundColor: "#EFF6FF",
-    borderRadius: 16,
-    padding: 18,
+    backgroundColor: "#2563EB",
+    borderRadius: 18,
+    padding: 20,
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
     borderWidth: 1,
-    borderColor: "#DBEAFE",
+    borderColor: "#3B82F6",
     marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#1E40AF",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 3,
+      },
+      default: {},
+    }),
   },
   heroIconContainer: {
     width: 52,
     height: 52,
     borderRadius: 14,
-    backgroundColor: "#DBEAFE",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -401,20 +415,20 @@ const customStyles = StyleSheet.create({
   heroTagline: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#2563EB",
+    color: "#BFDBFE",
     textTransform: "uppercase",
     letterSpacing: 0.6,
     marginBottom: 2,
   },
   heroTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#FFFFFF",
     letterSpacing: -0.3,
   },
   heroDescription: {
     fontSize: 13,
-    color: "#475569",
+    color: "#E0E7FF",
     marginTop: 2,
     lineHeight: 18,
   },

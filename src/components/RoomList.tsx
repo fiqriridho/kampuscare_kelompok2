@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Platform, ScrollView, Text, View } from "react-native";
 
 import { rooms, RoomStatus } from "../data/rooms";
 
@@ -9,30 +9,40 @@ const STATUS_CONFIG: Record<
     label: string;
     background: string;
     text: string;
+    border: string;
+    dot: string;
   }
 > = {
   empty: {
     label: "Kosong",
     background: "#DCFCE7",
     text: "#15803D",
+    border: "#BBF7D0",
+    dot: "🟢",
   },
 
   occupied: {
     label: "Terpakai",
     background: "#FEE2E2",
     text: "#B91C1C",
+    border: "#FECACA",
+    dot: "🔴",
   },
 
   upcoming: {
     label: "Akan Datang",
     background: "#FEF3C7",
     text: "#B45309",
+    border: "#FDE68A",
+    dot: "🟡",
   },
 
   maintenance: {
     label: "Perbaikan",
-    background: "#E5E7EB",
-    text: "#4B5563",
+    background: "#F5F3FF",
+    text: "#6D28D9",
+    border: "#DDD6FE",
+    dot: "🔧",
   },
 };
 
@@ -46,7 +56,9 @@ export const RoomList = () => {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{
-        gap: 12,
+        gap: 14,
+        paddingVertical: 4,
+        paddingHorizontal: 2,
       }}
     >
       {rooms.map((room) => {
@@ -58,17 +70,25 @@ export const RoomList = () => {
             style={{
               width: 280,
               backgroundColor: "#FFFFFF",
-              borderRadius: 14,
+              borderRadius: 16,
               padding: 18,
-              borderWidth: 1,
-              borderColor: "#E2E8F0",
-              shadowColor: "#0F172A",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.04,
-              shadowRadius: 6,
-              elevation: 1,
+              borderWidth: 1.5,
+              borderColor: status.border,
+              ...Platform.select({
+                ios: {
+                  shadowColor: "#0F172A",
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 8,
+                },
+                android: {
+                  elevation: 2,
+                },
+                default: {},
+              }),
             }}
           >
+            {/* Header: Room Name & Status Badge */}
             <View
               style={{
                 flexDirection: "row",
@@ -77,73 +97,112 @@ export const RoomList = () => {
                 marginBottom: 14,
               }}
             >
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "700",
-                  color: "#0F172A",
-                  letterSpacing: -0.3,
-                }}
-              >
-                {room.name}
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: "#EFF6FF",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 18 }}>🚪</Text>
+                </View>
+                <Text
+                  style={{
+                    fontSize: 17,
+                    fontWeight: "800",
+                    color: "#0F172A",
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  {room.name}
+                </Text>
+              </View>
 
               <View
                 style={{
                   backgroundColor: status.background,
                   paddingHorizontal: 10,
-                  paddingVertical: 4,
+                  paddingVertical: 5,
                   borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor: status.border,
                 }}
               >
                 <Text
                   style={{
                     color: status.text,
-                    fontSize: 12,
-                    fontWeight: "600",
+                    fontSize: 11.5,
+                    fontWeight: "700",
                   }}
                 >
-                  {status.label}
+                  {status.dot} {status.label}
                 </Text>
               </View>
             </View>
 
-            <View style={{ gap: 6 }}>
+            {/* Info Badges */}
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 8,
+                paddingTop: 10,
+                borderTopWidth: 1,
+                borderTopColor: "#F1F5F9",
+              }}
+            >
               <View
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  flex: 1,
+                  backgroundColor: "#F8FAFC",
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: "#E2E8F0",
                 }}
               >
-                <Text style={{ fontSize: 13, color: "#64748B" }}>Gedung</Text>
+                <Text style={{ fontSize: 11, color: "#64748B", fontWeight: "600" }}>
+                  Gedung
+                </Text>
                 <Text
                   style={{
                     fontSize: 13,
-                    fontWeight: "600",
-                    color: "#334155",
+                    fontWeight: "700",
+                    color: "#1E293B",
+                    marginTop: 2,
                   }}
                 >
-                  {room.building}
+                  🏛️ {room.building}
                 </Text>
               </View>
 
               <View
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  flex: 1,
+                  backgroundColor: "#F8FAFC",
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: "#E2E8F0",
                 }}
               >
-                <Text style={{ fontSize: 13, color: "#64748B" }}>Kapasitas</Text>
+                <Text style={{ fontSize: 11, color: "#64748B", fontWeight: "600" }}>
+                  Kapasitas
+                </Text>
                 <Text
                   style={{
                     fontSize: 13,
-                    fontWeight: "600",
-                    color: "#334155",
+                    fontWeight: "700",
+                    color: "#1E293B",
+                    marginTop: 2,
                   }}
                 >
-                  {room.capacity} orang
+                  👥 {room.capacity} org
                 </Text>
               </View>
             </View>
@@ -153,4 +212,3 @@ export const RoomList = () => {
     </ScrollView>
   );
 };
-
