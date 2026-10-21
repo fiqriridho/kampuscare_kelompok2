@@ -21,24 +21,24 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
+      <StatusBar barStyle="light-content" backgroundColor="#B91C1C" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          {/* Hero Banner Header */}
+          {/* Hero Banner Header (Campus Red Theme) */}
           <View style={styles.heroCard}>
             <View style={styles.heroTopRow}>
               <View style={styles.heroBadge}>
-                <Text style={styles.heroBadgeText}>🎓 Portal Fasilitas Kampus</Text>
+                <Text style={styles.heroBadgeText}>🎓 Portal Mahasiswa & Fasilitas</Text>
               </View>
-              <Text style={{ fontSize: 24 }}>🏛️</Text>
+              <Text style={{ fontSize: 26 }}>🏛️</Text>
             </View>
 
             <Text style={styles.heroSubtitle}>Selamat Datang di</Text>
             <Text style={styles.heroTitle}>KampusCare</Text>
             <Text style={styles.heroDesc}>
-              Pantau ketersediaan ruang kelas dan laporkan kendala fasilitas secara
-              mudah dan cepat.
+              Platform terpadu mahasiswa untuk memantau ketersediaan ruang kelas
+              dan melaporkan kendala fasilitas kampus secara cepat dan transparan.
             </Text>
           </View>
 
@@ -83,7 +83,7 @@ export default function Index() {
               <Text style={styles.searchIcon}>🔍</Text>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Cari ruangan atau fasilitas..."
+                placeholder="Cari ruangan kelas, gedung, atau fasilitas..."
                 placeholderTextColor="#94A3B8"
                 value={search}
                 onChangeText={setSearch}
@@ -93,7 +93,7 @@ export default function Index() {
             <RoomList />
           </View>
 
-          {/* Status Ruang Kelas (Harmonious Colored Cards) */}
+          {/* Status Ruang Kelas (Responsive Colored Grid Cards) */}
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionTitle}>Status Ruang Kelas</Text>
@@ -146,12 +146,12 @@ export default function Index() {
 
               <Text style={styles.reportTitle}>Proyektor Ruang 201</Text>
               <Text style={styles.reportDescription}>
-                Proyektor tidak dapat menyala.
+                Proyektor tidak dapat menyala saat sesi perkuliahan berlangsung.
               </Text>
 
               <View style={styles.reportFooterRow}>
                 <Text style={styles.reportFooterText}>
-                  📍 Ruang 201 (GKB 2) · Status: Baru Masuk
+                  📍 Ruang 201 (GKB 2) · Status: Dalam Antrean Teknisi
                 </Text>
               </View>
             </View>

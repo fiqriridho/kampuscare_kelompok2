@@ -103,7 +103,7 @@ export const RoomList = () => {
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: "#EFF6FF",
+                    backgroundColor: "#FEF2F2",
                     alignItems: "center",
                     justifyContent: "center",
                   }}

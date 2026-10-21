@@ -15,7 +15,7 @@ import { styles as globalStyles } from "../style/UIstyles";
 export default function DetailRuanganScreen() {
   return (
     <SafeAreaView style={globalStyles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
+      <StatusBar barStyle="light-content" backgroundColor="#B91C1C" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={globalStyles.content}>
@@ -127,15 +127,15 @@ export default function DetailRuanganScreen() {
 
 const detailStyles = StyleSheet.create({
   heroBanner: {
-    backgroundColor: "#2563EB",
+    backgroundColor: "#B91C1C",
     borderRadius: 20,
     padding: 22,
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: "#3B82F6",
+    borderColor: "#DC2626",
     ...Platform.select({
       ios: {
-        shadowColor: "#1E40AF",
+        shadowColor: "#991B1B",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 10,

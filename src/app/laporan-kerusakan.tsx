@@ -129,7 +129,7 @@ export default function LaporanKerusakanScreen() {
 
   return (
     <SafeAreaView style={globalStyles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
+      <StatusBar barStyle="light-content" backgroundColor="#B91C1C" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -379,18 +379,18 @@ export default function LaporanKerusakanScreen() {
 
 const customStyles = StyleSheet.create({
   heroBanner: {
-    backgroundColor: "#2563EB",
+    backgroundColor: "#B91C1C",
     borderRadius: 18,
     padding: 20,
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
     borderWidth: 1,
-    borderColor: "#3B82F6",
+    borderColor: "#DC2626",
     marginBottom: 16,
     ...Platform.select({
       ios: {
-        shadowColor: "#1E40AF",
+        shadowColor: "#991B1B",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 10,
@@ -415,7 +415,7 @@ const customStyles = StyleSheet.create({
   heroTagline: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#BFDBFE",
+    color: "#FECACA",
     textTransform: "uppercase",
     letterSpacing: 0.6,
     marginBottom: 2,
@@ -428,7 +428,7 @@ const customStyles = StyleSheet.create({
   },
   heroDescription: {
     fontSize: 13,
-    color: "#E0E7FF",
+    color: "#FEE2E2",
     marginTop: 2,
     lineHeight: 18,
   },
@@ -437,9 +437,9 @@ const customStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FEF2F2",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#FECACA",
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
@@ -451,7 +451,7 @@ const customStyles = StyleSheet.create({
   noticeText: {
     flex: 1,
     fontSize: 12.5,
-    color: "#475569",
+    color: "#991B1B",
     lineHeight: 17,
   },
 
@@ -520,8 +520,8 @@ const customStyles = StyleSheet.create({
     borderRadius: 12,
   },
   categoryChipSelected: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#2563EB",
+    backgroundColor: "#FEF2F2",
+    borderColor: "#DC2626",
   },
   categoryIcon: {
     fontSize: 16,
@@ -532,7 +532,7 @@ const customStyles = StyleSheet.create({
     color: "#475569",
   },
   categoryLabelSelected: {
-    color: "#2563EB",
+    color: "#DC2626",
     fontWeight: "700",
   },
 
@@ -600,8 +600,8 @@ const customStyles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   quickPillActive: {
-    backgroundColor: "#DBEAFE",
-    borderColor: "#93C5FD",
+    backgroundColor: "#FEE2E2",
+    borderColor: "#FECACA",
   },
   quickPillText: {
     fontSize: 12,
@@ -609,7 +609,7 @@ const customStyles = StyleSheet.create({
     color: "#334155",
   },
   quickPillTextActive: {
-    color: "#1D4ED8",
+    color: "#991B1B",
   },
 
   textAreaField: {
@@ -656,7 +656,7 @@ const customStyles = StyleSheet.create({
   },
 
   primarySubmitButton: {
-    backgroundColor: "#2563EB",
+    backgroundColor: "#DC2626",
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: "center",
@@ -664,7 +664,7 @@ const customStyles = StyleSheet.create({
     marginTop: 8,
     ...Platform.select({
       ios: {
-        shadowColor: "#2563EB",
+        shadowColor: "#DC2626",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 8,

@@ -3,34 +3,34 @@ import { StyleSheet, Platform } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F8FAFC",
   },
 
   centerWrapper: {
     width: "100%",
-    maxWidth: 600,
+    maxWidth: 1080,
     alignSelf: "center",
   },
 
   content: {
     width: "100%",
-    maxWidth: 600,
+    maxWidth: 1080,
     alignSelf: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: Platform.OS === "web" ? 28 : 16,
+    paddingVertical: 24,
   },
 
-  // Hero Card Banner (Modern & Colorful)
+  // Hero Card Banner (Campus Crimson Red & Student Vibe)
   heroCard: {
-    backgroundColor: "#2563EB",
+    backgroundColor: "#B91C1C",
     borderRadius: 20,
-    padding: 22,
+    padding: Platform.OS === "web" ? 28 : 20,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#3B82F6",
+    borderColor: "#DC2626",
     ...Platform.select({
       ios: {
-        shadowColor: "#1E40AF",
+        shadowColor: "#991B1B",
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.25,
         shadowRadius: 12,
@@ -46,113 +46,115 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 12,
   },
 
   heroBadge: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.22)",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 20,
   },
 
   heroBadgeText: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: "700",
     color: "#FFFFFF",
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     textTransform: "uppercase",
   },
 
   heroSubtitle: {
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: "600",
-    color: "#BFDBFE",
+    color: "#FECACA",
     letterSpacing: 0.5,
     marginBottom: 2,
   },
 
   heroTitle: {
-    fontSize: 26,
-    fontWeight: "800",
+    fontSize: Platform.OS === "web" ? 30 : 26,
+    fontWeight: "900",
     color: "#FFFFFF",
     letterSpacing: -0.5,
   },
 
   heroDesc: {
-    fontSize: 13,
-    color: "#E0E7FF",
+    fontSize: 13.5,
+    color: "#FEE2E2",
     marginTop: 6,
-    lineHeight: 18,
+    lineHeight: 20,
+    maxWidth: 720,
   },
 
-  // Legacy header styles kept for backward compatibility
+  // Legacy header styles
   header: {
     marginBottom: 20,
   },
   headerSubtitle: {
     fontSize: 13,
-    fontWeight: "600",
-    color: "#2563EB",
+    fontWeight: "700",
+    color: "#DC2626",
     textTransform: "uppercase",
     letterSpacing: 0.8,
     marginBottom: 4,
   },
   headerTitle: {
     fontSize: 26,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#0F172A",
     letterSpacing: -0.5,
   },
 
   // Sections
   section: {
-    marginBottom: 26,
+    marginBottom: 28,
   },
 
   sectionHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 8,
   },
 
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: "800",
     color: "#0F172A",
     letterSpacing: -0.3,
-    marginBottom: 4,
   },
 
   sectionDescription: {
-    fontSize: 13.5,
+    fontSize: 14,
     color: "#64748B",
     marginBottom: 14,
-    lineHeight: 19,
+    lineHeight: 20,
   },
 
-  // Action Buttons
+  // Quick Action Buttons
   actionContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
 
   actionButton: {
     flex: 1,
-    backgroundColor: "#2563EB",
+    minWidth: 200,
+    backgroundColor: "#DC2626",
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     gap: 8,
     borderWidth: 1,
-    borderColor: "#1D4ED8",
+    borderColor: "#B91C1C",
     ...Platform.select({
       ios: {
-        shadowColor: "#2563EB",
+        shadowColor: "#DC2626",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 8,
@@ -166,41 +168,42 @@ export const styles = StyleSheet.create({
 
   actionButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: 14.5,
     fontWeight: "700",
     letterSpacing: -0.1,
   },
 
   actionButtonSecondary: {
     flex: 1,
-    backgroundColor: "#EFF6FF",
+    minWidth: 200,
+    backgroundColor: "#FEF2F2",
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     gap: 8,
     borderWidth: 1.5,
-    borderColor: "#BFDBFE",
+    borderColor: "#FECACA",
   },
 
   actionButtonSecondaryText: {
-    color: "#1E40AF",
-    fontSize: 14,
+    color: "#991B1B",
+    fontSize: 14.5,
     fontWeight: "700",
     letterSpacing: -0.1,
   },
 
-  // Search input with icon container
+  // Search input
   searchWrapper: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderWidth: 1.5,
-    borderColor: "#CBD5E1",
+    borderColor: "#E2E8F0",
     borderRadius: 14,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     marginBottom: 16,
     ...Platform.select({
       ios: {
@@ -218,7 +221,7 @@ export const styles = StyleSheet.create({
 
   searchIcon: {
     fontSize: 16,
-    marginRight: 8,
+    marginRight: 10,
   },
 
   searchInput: {
@@ -228,7 +231,7 @@ export const styles = StyleSheet.create({
     color: "#0F172A",
   },
 
-  // Status Cards Grid (Distinct Harmonious Colors)
+  // Status Cards Grid (Responsive for Web & Mobile)
   statusContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -237,11 +240,11 @@ export const styles = StyleSheet.create({
 
   statusCardEmpty: {
     flex: 1,
-    minWidth: 135,
+    minWidth: Platform.OS === "web" ? 180 : 140,
     backgroundColor: "#F0FDF4",
     borderWidth: 1.5,
     borderColor: "#BBF7D0",
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
@@ -261,11 +264,11 @@ export const styles = StyleSheet.create({
 
   statusCardOccupied: {
     flex: 1,
-    minWidth: 135,
+    minWidth: Platform.OS === "web" ? 180 : 140,
     backgroundColor: "#FEF2F2",
     borderWidth: 1.5,
     borderColor: "#FECACA",
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
@@ -285,11 +288,11 @@ export const styles = StyleSheet.create({
 
   statusCardUpcoming: {
     flex: 1,
-    minWidth: 135,
+    minWidth: Platform.OS === "web" ? 180 : 140,
     backgroundColor: "#FFFBEB",
     borderWidth: 1.5,
     borderColor: "#FDE68A",
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
@@ -309,11 +312,11 @@ export const styles = StyleSheet.create({
 
   statusCardMaintenance: {
     flex: 1,
-    minWidth: 135,
+    minWidth: Platform.OS === "web" ? 180 : 140,
     backgroundColor: "#F5F3FF",
     borderWidth: 1.5,
     borderColor: "#DDD6FE",
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
@@ -333,7 +336,7 @@ export const styles = StyleSheet.create({
 
   statusItem: {
     flex: 1,
-    minWidth: 135,
+    minWidth: 140,
     backgroundColor: "#FFFFFF",
     paddingVertical: 16,
     paddingHorizontal: 14,
@@ -344,28 +347,28 @@ export const styles = StyleSheet.create({
   },
 
   statusNumber: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "900",
     color: "#0F172A",
   },
 
   statusNumberEmpty: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "900",
     color: "#15803D",
   },
   statusNumberOccupied: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "900",
     color: "#B91C1C",
   },
   statusNumberUpcoming: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "900",
     color: "#B45309",
   },
   statusNumberMaintenance: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "900",
     color: "#6D28D9",
   },
@@ -378,18 +381,18 @@ export const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  // Report Card (Warm Alert Styling)
+  // Report Card (Featured Campus Alert)
   reportCard: {
     backgroundColor: "#FFFFFF",
-    padding: 18,
+    padding: 20,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: "#FED7AA",
-    borderLeftWidth: 5,
-    borderLeftColor: "#F97316",
+    borderColor: "#FECACA",
+    borderLeftWidth: 6,
+    borderLeftColor: "#DC2626",
     ...Platform.select({
       ios: {
-        shadowColor: "#F97316",
+        shadowColor: "#DC2626",
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
@@ -405,24 +408,26 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 8,
   },
 
   reportBadge: {
-    backgroundColor: "#FFEDD5",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: "#FEE2E2",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#FECACA",
   },
 
   reportBadgeText: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: "700",
-    color: "#C2410C",
+    color: "#B91C1C",
   },
 
   reportTitle: {
-    fontSize: 16,
+    fontSize: 16.5,
     fontWeight: "800",
     color: "#0F172A",
     marginBottom: 4,
@@ -431,30 +436,30 @@ export const styles = StyleSheet.create({
   reportDescription: {
     fontSize: 13.5,
     color: "#475569",
-    lineHeight: 19,
+    lineHeight: 20,
   },
 
   reportFooterRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginTop: 10,
+    marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#FFF7ED",
+    borderTopColor: "#F1F5F9",
   },
 
   reportFooterText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#9A3412",
+    color: "#64748B",
   },
 
   // Shared Cards & Forms
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 18,
+    padding: 20,
     borderWidth: 1.5,
     borderColor: "#E2E8F0",
     marginBottom: 16,
@@ -541,16 +546,16 @@ export const styles = StyleSheet.create({
   },
 
   submitButton: {
-    backgroundColor: "#2563EB",
+    backgroundColor: "#DC2626",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
     marginTop: 8,
     ...Platform.select({
       ios: {
-        shadowColor: "#2563EB",
+        shadowColor: "#DC2626",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.25,
         shadowRadius: 8,
       },
       android: {
