@@ -33,8 +33,8 @@ export default function Index() {
                 <Text style={styles.actionButtonText}>Lapor Kerusakan</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionButton}>
-                <Text style={styles.actionButtonText}>Lihat Laporan</Text>
+              <TouchableOpacity style={styles.actionButtonSecondary}>
+                <Text style={styles.actionButtonSecondaryText}>Lihat Laporan</Text>
               </TouchableOpacity>
             </View>
           </View>
