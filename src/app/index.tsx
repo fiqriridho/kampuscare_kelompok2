@@ -21,24 +21,24 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#B91C1C" />
+      <StatusBar barStyle="light-content" backgroundColor="#7F1D1D" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          {/* Hero Banner Header (Campus Red Theme) */}
+          {/* Hero Banner Header (Refined Executive Burgundy Maroon) */}
           <View style={styles.heroCard}>
             <View style={styles.heroTopRow}>
               <View style={styles.heroBadge}>
                 <Text style={styles.heroBadgeText}>🎓 Portal Mahasiswa & Fasilitas</Text>
               </View>
-              <Text style={{ fontSize: 26 }}>🏛️</Text>
+              <Text style={{ fontSize: 24 }}>🏛️</Text>
             </View>
 
             <Text style={styles.heroSubtitle}>Selamat Datang di</Text>
             <Text style={styles.heroTitle}>KampusCare</Text>
             <Text style={styles.heroDesc}>
-              Platform terpadu mahasiswa untuk memantau ketersediaan ruang kelas
-              dan melaporkan kendala fasilitas kampus secara cepat dan transparan.
+              Platform resmi civitas akademika untuk monitoring ketersediaan ruang
+              kelas dan pelaporan kendala fasilitas kampus.
             </Text>
           </View>
 
@@ -78,7 +78,7 @@ export default function Index() {
               Lihat status dan informasi ruang kelas.
             </Text>
 
-            {/* Modern Search Input with Icon */}
+            {/* Modern Clean Search Input */}
             <View style={styles.searchWrapper}>
               <Text style={styles.searchIcon}>🔍</Text>
               <TextInput
@@ -93,7 +93,7 @@ export default function Index() {
             <RoomList />
           </View>
 
-          {/* Status Ruang Kelas (Responsive Colored Grid Cards) */}
+          {/* Status Ruang Kelas (Harmonious Pastel Cards) */}
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionTitle}>Status Ruang Kelas</Text>
@@ -102,35 +102,35 @@ export default function Index() {
             <View style={styles.statusContainer}>
               <View style={styles.statusCardEmpty}>
                 <Text style={styles.statusNumberEmpty}>1</Text>
-                <Text style={[styles.statusLabel, { color: "#15803D" }]}>
+                <Text style={[styles.statusLabel, { color: "#166534" }]}>
                   🟢 Kosong
                 </Text>
               </View>
 
               <View style={styles.statusCardOccupied}>
                 <Text style={styles.statusNumberOccupied}>1</Text>
-                <Text style={[styles.statusLabel, { color: "#B91C1C" }]}>
+                <Text style={[styles.statusLabel, { color: "#9F1239" }]}>
                   🔴 Terpakai
                 </Text>
               </View>
 
               <View style={styles.statusCardUpcoming}>
                 <Text style={styles.statusNumberUpcoming}>1</Text>
-                <Text style={[styles.statusLabel, { color: "#B45309" }]}>
+                <Text style={[styles.statusLabel, { color: "#92400E" }]}>
                   🟡 Akan Datang
                 </Text>
               </View>
 
               <View style={styles.statusCardMaintenance}>
                 <Text style={styles.statusNumberMaintenance}>1</Text>
-                <Text style={[styles.statusLabel, { color: "#6D28D9" }]}>
+                <Text style={[styles.statusLabel, { color: "#475569" }]}>
                   🔧 Perbaikan
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Laporan Kerusakan Teratas (Warm Alert Card) */}
+          {/* Laporan Kerusakan Teratas (Clean Professional Alert) */}
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionTitle}>Laporan Kerusakan Teratas</Text>

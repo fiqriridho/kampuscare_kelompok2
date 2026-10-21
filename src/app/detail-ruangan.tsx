@@ -15,7 +15,7 @@ import { styles as globalStyles } from "../style/UIstyles";
 export default function DetailRuanganScreen() {
   return (
     <SafeAreaView style={globalStyles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#B91C1C" />
+      <StatusBar barStyle="light-content" backgroundColor="#7F1D1D" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={globalStyles.content}>
@@ -66,8 +66,8 @@ export default function DetailRuanganScreen() {
 
             <View style={globalStyles.infoRow}>
               <Text style={detailStyles.facilityItem}>📽️ Proyektor LCD</Text>
-              <View style={[globalStyles.badge, { backgroundColor: "#DCFCE7" }]}>
-                <Text style={[globalStyles.badgeText, { color: "#15803D" }]}>
+              <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
+                <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Berfungsi
                 </Text>
               </View>
@@ -75,8 +75,8 @@ export default function DetailRuanganScreen() {
 
             <View style={globalStyles.infoRow}>
               <Text style={detailStyles.facilityItem}>❄️ AC Pendingin (2 Unit)</Text>
-              <View style={[globalStyles.badge, { backgroundColor: "#DCFCE7" }]}>
-                <Text style={[globalStyles.badgeText, { color: "#15803D" }]}>
+              <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
+                <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Dingin
                 </Text>
               </View>
@@ -84,8 +84,8 @@ export default function DetailRuanganScreen() {
 
             <View style={globalStyles.infoRow}>
               <Text style={detailStyles.facilityItem}>💡 Penerangan Ruangan</Text>
-              <View style={[globalStyles.badge, { backgroundColor: "#DCFCE7" }]}>
-                <Text style={[globalStyles.badgeText, { color: "#15803D" }]}>
+              <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
+                <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Normal
                 </Text>
               </View>
@@ -93,8 +93,8 @@ export default function DetailRuanganScreen() {
 
             <View style={globalStyles.infoRow}>
               <Text style={detailStyles.facilityItem}>📋 Papan Tulis & Spidol</Text>
-              <View style={[globalStyles.badge, { backgroundColor: "#DCFCE7" }]}>
-                <Text style={[globalStyles.badgeText, { color: "#15803D" }]}>
+              <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
+                <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Lengkap
                 </Text>
               </View>
@@ -102,8 +102,8 @@ export default function DetailRuanganScreen() {
 
             <View style={[globalStyles.infoRow, { borderBottomWidth: 0 }]}>
               <Text style={detailStyles.facilityItem}>🔌 Terminal Listrik</Text>
-              <View style={[globalStyles.badge, { backgroundColor: "#DCFCE7" }]}>
-                <Text style={[globalStyles.badgeText, { color: "#15803D" }]}>
+              <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
+                <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Aman
                 </Text>
               </View>
@@ -127,17 +127,17 @@ export default function DetailRuanganScreen() {
 
 const detailStyles = StyleSheet.create({
   heroBanner: {
-    backgroundColor: "#B91C1C",
+    backgroundColor: "#7F1D1D",
     borderRadius: 20,
     padding: 22,
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: "#DC2626",
+    borderColor: "#991B1B",
     ...Platform.select({
       ios: {
-        shadowColor: "#991B1B",
+        shadowColor: "#450A0A",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
+        shadowOpacity: 0.2,
         shadowRadius: 10,
       },
       android: {
@@ -153,10 +153,12 @@ const detailStyles = StyleSheet.create({
     marginBottom: 12,
   },
   heroTag: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.16)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   heroTagText: {
     color: "#FFFFFF",
@@ -171,7 +173,7 @@ const detailStyles = StyleSheet.create({
     borderRadius: 20,
   },
   statusBadgeText: {
-    color: "#15803D",
+    color: "#166534",
     fontSize: 12,
     fontWeight: "800",
   },
@@ -184,7 +186,7 @@ const detailStyles = StyleSheet.create({
   },
   roomSubtitle: {
     fontSize: 13.5,
-    color: "#DBEAFE",
+    color: "#FECDD3",
     fontWeight: "500",
   },
 

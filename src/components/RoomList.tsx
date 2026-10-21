@@ -15,33 +15,33 @@ const STATUS_CONFIG: Record<
 > = {
   empty: {
     label: "Kosong",
-    background: "#DCFCE7",
-    text: "#15803D",
+    background: "#F0FDF4",
+    text: "#166534",
     border: "#BBF7D0",
     dot: "🟢",
   },
 
   occupied: {
     label: "Terpakai",
-    background: "#FEE2E2",
-    text: "#B91C1C",
-    border: "#FECACA",
+    background: "#FFF1F2",
+    text: "#9F1239",
+    border: "#FECDD3",
     dot: "🔴",
   },
 
   upcoming: {
     label: "Akan Datang",
-    background: "#FEF3C7",
-    text: "#B45309",
+    background: "#FFFBEB",
+    text: "#92400E",
     border: "#FDE68A",
     dot: "🟡",
   },
 
   maintenance: {
     label: "Perbaikan",
-    background: "#F5F3FF",
-    text: "#6D28D9",
-    border: "#DDD6FE",
+    background: "#F8FAFC",
+    text: "#475569",
+    border: "#E2E8F0",
     dot: "🔧",
   },
 };
@@ -73,16 +73,16 @@ export const RoomList = () => {
               borderRadius: 16,
               padding: 18,
               borderWidth: 1.5,
-              borderColor: status.border,
+              borderColor: "#E2E8F0",
               ...Platform.select({
                 ios: {
                   shadowColor: "#0F172A",
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 6,
                 },
                 android: {
-                  elevation: 2,
+                  elevation: 1,
                 },
                 default: {},
               }),
@@ -103,7 +103,9 @@ export const RoomList = () => {
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: "#FEF2F2",
+                    backgroundColor: "#F8FAFC",
+                    borderWidth: 1,
+                    borderColor: "#E2E8F0",
                     alignItems: "center",
                     justifyContent: "center",
                   }}

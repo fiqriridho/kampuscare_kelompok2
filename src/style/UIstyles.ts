@@ -16,27 +16,27 @@ export const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 1080,
     alignSelf: "center",
-    paddingHorizontal: Platform.OS === "web" ? 28 : 16,
+    paddingHorizontal: Platform.OS === "web" ? 32 : 18,
     paddingVertical: 24,
   },
 
-  // Hero Card Banner (Campus Crimson Red & Student Vibe)
+  // Hero Card Banner (Professional Deep Burgundy / Maroon)
   heroCard: {
-    backgroundColor: "#B91C1C",
+    backgroundColor: "#7F1D1D",
     borderRadius: 20,
-    padding: Platform.OS === "web" ? 28 : 20,
-    marginBottom: 24,
+    padding: Platform.OS === "web" ? 30 : 22,
+    marginBottom: 26,
     borderWidth: 1,
-    borderColor: "#DC2626",
+    borderColor: "#991B1B",
     ...Platform.select({
       ios: {
-        shadowColor: "#991B1B",
+        shadowColor: "#450A0A",
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.25,
+        shadowOpacity: 0.2,
         shadowRadius: 12,
       },
       android: {
-        elevation: 4,
+        elevation: 3,
       },
       default: {},
     }),
@@ -50,10 +50,12 @@ export const styles = StyleSheet.create({
   },
 
   heroBadge: {
-    backgroundColor: "rgba(255, 255, 255, 0.22)",
+    backgroundColor: "rgba(255, 255, 255, 0.16)",
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
 
   heroBadgeText: {
@@ -67,13 +69,13 @@ export const styles = StyleSheet.create({
   heroSubtitle: {
     fontSize: 13.5,
     fontWeight: "600",
-    color: "#FECACA",
+    color: "#FECDD3",
     letterSpacing: 0.5,
     marginBottom: 2,
   },
 
   heroTitle: {
-    fontSize: Platform.OS === "web" ? 30 : 26,
+    fontSize: Platform.OS === "web" ? 28 : 24,
     fontWeight: "900",
     color: "#FFFFFF",
     letterSpacing: -0.5,
@@ -81,7 +83,7 @@ export const styles = StyleSheet.create({
 
   heroDesc: {
     fontSize: 13.5,
-    color: "#FEE2E2",
+    color: "#FFE4E6",
     marginTop: 6,
     lineHeight: 20,
     maxWidth: 720,
@@ -94,7 +96,7 @@ export const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#DC2626",
+    color: "#7F1D1D",
     textTransform: "uppercase",
     letterSpacing: 0.8,
     marginBottom: 4,
@@ -119,7 +121,7 @@ export const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 19,
+    fontSize: 18.5,
     fontWeight: "800",
     color: "#0F172A",
     letterSpacing: -0.3,
@@ -142,25 +144,25 @@ export const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     minWidth: 200,
-    backgroundColor: "#DC2626",
+    backgroundColor: "#7F1D1D",
     paddingVertical: 14,
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     gap: 8,
     borderWidth: 1,
-    borderColor: "#B91C1C",
+    borderColor: "#661818",
     ...Platform.select({
       ios: {
-        shadowColor: "#DC2626",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
+        shadowColor: "#450A0A",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
-        elevation: 3,
+        elevation: 2,
       },
       default: {},
     }),
@@ -168,7 +170,7 @@ export const styles = StyleSheet.create({
 
   actionButtonText: {
     color: "#FFFFFF",
-    fontSize: 14.5,
+    fontSize: 14,
     fontWeight: "700",
     letterSpacing: -0.1,
   },
@@ -176,21 +178,33 @@ export const styles = StyleSheet.create({
   actionButtonSecondary: {
     flex: 1,
     minWidth: 200,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: "#FFFFFF",
     paddingVertical: 14,
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     gap: 8,
     borderWidth: 1.5,
-    borderColor: "#FECACA",
+    borderColor: "#E2E8F0",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#0F172A",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 1,
+      },
+      default: {},
+    }),
   },
 
   actionButtonSecondaryText: {
-    color: "#991B1B",
-    fontSize: 14.5,
+    color: "#334155",
+    fontSize: 14,
     fontWeight: "700",
     letterSpacing: -0.1,
   },
@@ -231,7 +245,7 @@ export const styles = StyleSheet.create({
     color: "#0F172A",
   },
 
-  // Status Cards Grid (Responsive for Web & Mobile)
+  // Status Cards Grid
   statusContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -248,42 +262,18 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#16A34A",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 1,
-      },
-      default: {},
-    }),
   },
 
   statusCardOccupied: {
     flex: 1,
     minWidth: Platform.OS === "web" ? 180 : 140,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: "#FFF1F2",
     borderWidth: 1.5,
-    borderColor: "#FECACA",
+    borderColor: "#FECDD3",
     paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#DC2626",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 1,
-      },
-      default: {},
-    }),
   },
 
   statusCardUpcoming: {
@@ -296,42 +286,18 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#D97706",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 1,
-      },
-      default: {},
-    }),
   },
 
   statusCardMaintenance: {
     flex: 1,
     minWidth: Platform.OS === "web" ? 180 : 140,
-    backgroundColor: "#F5F3FF",
+    backgroundColor: "#F8FAFC",
     borderWidth: 1.5,
-    borderColor: "#DDD6FE",
+    borderColor: "#E2E8F0",
     paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#7C3AED",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 1,
-      },
-      default: {},
-    }),
   },
 
   statusItem: {
@@ -347,30 +313,30 @@ export const styles = StyleSheet.create({
   },
 
   statusNumber: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "900",
     color: "#0F172A",
   },
 
   statusNumberEmpty: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "900",
-    color: "#15803D",
+    color: "#166534",
   },
   statusNumberOccupied: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "900",
-    color: "#B91C1C",
+    color: "#9F1239",
   },
   statusNumberUpcoming: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "900",
-    color: "#B45309",
+    color: "#92400E",
   },
   statusNumberMaintenance: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "900",
-    color: "#6D28D9",
+    color: "#475569",
   },
 
   statusLabel: {
@@ -381,24 +347,24 @@ export const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  // Report Card (Featured Campus Alert)
+  // Report Card (Clean & Authoritative)
   reportCard: {
     backgroundColor: "#FFFFFF",
     padding: 20,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: "#FECACA",
-    borderLeftWidth: 6,
-    borderLeftColor: "#DC2626",
+    borderColor: "#E2E8F0",
+    borderLeftWidth: 5,
+    borderLeftColor: "#7F1D1D",
     ...Platform.select({
       ios: {
-        shadowColor: "#DC2626",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.08,
+        shadowColor: "#0F172A",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
         shadowRadius: 8,
       },
       android: {
-        elevation: 2,
+        elevation: 1,
       },
       default: {},
     }),
@@ -412,18 +378,18 @@ export const styles = StyleSheet.create({
   },
 
   reportBadge: {
-    backgroundColor: "#FEE2E2",
+    backgroundColor: "#FFF1F2",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#FECACA",
+    borderColor: "#FECDD3",
   },
 
   reportBadgeText: {
     fontSize: 11.5,
     fontWeight: "700",
-    color: "#B91C1C",
+    color: "#9F1239",
   },
 
   reportTitle: {
@@ -546,20 +512,20 @@ export const styles = StyleSheet.create({
   },
 
   submitButton: {
-    backgroundColor: "#DC2626",
+    backgroundColor: "#7F1D1D",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
     marginTop: 8,
     ...Platform.select({
       ios: {
-        shadowColor: "#DC2626",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
+        shadowColor: "#450A0A",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
-        elevation: 3,
+        elevation: 2,
       },
       default: {},
     }),

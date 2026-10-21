@@ -437,9 +437,9 @@ const customStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#FECACA",
+    borderColor: "#E2E8F0",
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
@@ -451,7 +451,7 @@ const customStyles = StyleSheet.create({
   noticeText: {
     flex: 1,
     fontSize: 12.5,
-    color: "#991B1B",
+    color: "#475569",
     lineHeight: 17,
   },
 
@@ -520,8 +520,8 @@ const customStyles = StyleSheet.create({
     borderRadius: 12,
   },
   categoryChipSelected: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#DC2626",
+    backgroundColor: "#FFF1F2",
+    borderColor: "#7F1D1D",
   },
   categoryIcon: {
     fontSize: 16,
@@ -532,7 +532,7 @@ const customStyles = StyleSheet.create({
     color: "#475569",
   },
   categoryLabelSelected: {
-    color: "#DC2626",
+    color: "#7F1D1D",
     fontWeight: "700",
   },
 
@@ -600,8 +600,8 @@ const customStyles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   quickPillActive: {
-    backgroundColor: "#FEE2E2",
-    borderColor: "#FECACA",
+    backgroundColor: "#FFF1F2",
+    borderColor: "#FECDD3",
   },
   quickPillText: {
     fontSize: 12,
@@ -609,7 +609,7 @@ const customStyles = StyleSheet.create({
     color: "#334155",
   },
   quickPillTextActive: {
-    color: "#991B1B",
+    color: "#7F1D1D",
   },
 
   textAreaField: {
@@ -656,7 +656,7 @@ const customStyles = StyleSheet.create({
   },
 
   primarySubmitButton: {
-    backgroundColor: "#DC2626",
+    backgroundColor: "#7F1D1D",
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: "center",
@@ -664,13 +664,13 @@ const customStyles = StyleSheet.create({
     marginTop: 8,
     ...Platform.select({
       ios: {
-        shadowColor: "#DC2626",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
+        shadowColor: "#450A0A",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
-        elevation: 3,
+        elevation: 2,
       },
       default: {},
     }),
