@@ -89,24 +89,6 @@ export const styles = StyleSheet.create({
     maxWidth: 720,
   },
 
-  // Legacy header styles
-  header: {
-    marginBottom: 20,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#7F1D1D",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 4,
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: "900",
-    color: "#0F172A",
-    letterSpacing: -0.5,
-  },
 
   // Sections
   section: {
@@ -175,40 +157,6 @@ export const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
 
-  actionButtonSecondary: {
-    flex: 1,
-    minWidth: 200,
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 8,
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#0F172A",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 1,
-      },
-      default: {},
-    }),
-  },
-
-  actionButtonSecondaryText: {
-    color: "#334155",
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: -0.1,
-  },
-
   // Search input
   searchWrapper: {
     flexDirection: "row",
@@ -231,11 +179,6 @@ export const styles = StyleSheet.create({
       },
       default: {},
     }),
-  },
-
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 10,
   },
 
   searchInput: {
@@ -298,24 +241,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 16,
     alignItems: "center",
-  },
-
-  statusItem: {
-    flex: 1,
-    minWidth: 140,
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-  },
-
-  statusNumber: {
-    fontSize: 28,
-    fontWeight: "900",
-    color: "#0F172A",
   },
 
   statusNumberEmpty: {

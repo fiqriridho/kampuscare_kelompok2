@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
+import { Room, rooms } from "../data/rooms";
 import { RoomList } from "../components/RoomList";
 import { styles } from "../style/UIstyles";
 
@@ -19,7 +20,29 @@ export default function Index() {
   const handlePress = () => {
     router.push("/laporan-kerusakan");
   };
+
+  // State untuk menyimpan kata kunci pencarian (FR-1.2)
   const [search, setSearch] = useState("");
+  // State untuk menyimpan daftar ruangan hasil pencarian
+  const [filteredRooms, setFilteredRooms] = useState<Room[]>(rooms);
+
+  // useEffect untuk memproses pencarian saat kata kunci berubah (FR-1.3)
+  useEffect(() => {
+    const keyword = search.trim().toLowerCase();
+
+    // Jika kata kunci kosong, seluruh ruangan ditampilkan (FR-1.7)
+    if (!keyword) {
+      setFilteredRooms(rooms);
+    } else {
+      // Pencarian tidak sensitif huruf besar/kecil (FR-1.4)
+      // Hanya menampilkan ruangan yang namanya cocok dengan kata kunci (FR-1.5)
+      setFilteredRooms(
+        rooms.filter((room) =>
+          room.name.toLowerCase().includes(keyword)
+        )
+      );
+    }
+  }, [search]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -31,9 +54,8 @@ export default function Index() {
           <View style={styles.heroCard}>
             <View style={styles.heroTopRow}>
               <View style={styles.heroBadge}>
-                <Text style={styles.heroBadgeText}>🎓 Portal Mahasiswa & Fasilitas</Text>
+                <Text style={styles.heroBadgeText}>Portal Mahasiswa & Fasilitas</Text>
               </View>
-              <Text style={{ fontSize: 24 }}>🏛️</Text>
             </View>
 
             <Text style={styles.heroSubtitle}>Selamat Datang di</Text>
@@ -56,16 +78,7 @@ export default function Index() {
                 onPress={handlePress}
                 activeOpacity={0.85}
               >
-                <Text style={styles.actionButtonText}>🚨 Lapor Kerusakan</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.actionButtonSecondary}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.actionButtonSecondaryText}>
-                  📋 Lihat Laporan
-                </Text>
+                <Text style={styles.actionButtonText}>Lapor Kerusakan</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -82,10 +95,9 @@ export default function Index() {
 
             {/* Modern Clean Search Input */}
             <View style={styles.searchWrapper}>
-              <Text style={styles.searchIcon}>🔍</Text>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Cari ruangan kelas, gedung, atau fasilitas..."
+                placeholder="Cari ruangan..."
                 placeholderTextColor="#94A3B8"
                 value={search}
                 onChangeText={setSearch}
@@ -93,13 +105,16 @@ export default function Index() {
             </View>
 
             <RoomList
+              rooms={filteredRooms}
               search={search}
-              onSelectRoom={(roomId) =>
-                router.push({
-                  pathname: "/detail-ruangan",
-                  params: { id: roomId },
-                })
-              }
+              onSelectRoom={(roomId) => {
+                if (roomId === "R308") {
+                  router.push({
+                    pathname: "/detail-ruangan",
+                    params: { id: roomId },
+                  });
+                }
+              }}
             />
           </View>
 
@@ -113,28 +128,28 @@ export default function Index() {
               <View style={styles.statusCardEmpty}>
                 <Text style={styles.statusNumberEmpty}>1</Text>
                 <Text style={[styles.statusLabel, { color: "#166534" }]}>
-                  🟢 Kosong
+                  Kosong
                 </Text>
               </View>
 
               <View style={styles.statusCardOccupied}>
                 <Text style={styles.statusNumberOccupied}>1</Text>
                 <Text style={[styles.statusLabel, { color: "#9F1239" }]}>
-                  🔴 Terpakai
+                  Terpakai
                 </Text>
               </View>
 
               <View style={styles.statusCardUpcoming}>
                 <Text style={styles.statusNumberUpcoming}>1</Text>
                 <Text style={[styles.statusLabel, { color: "#92400E" }]}>
-                  🟡 Akan Datang
+                  Akan Datang
                 </Text>
               </View>
 
               <View style={styles.statusCardMaintenance}>
                 <Text style={styles.statusNumberMaintenance}>1</Text>
                 <Text style={[styles.statusLabel, { color: "#475569" }]}>
-                  🔧 Perbaikan
+                  Perbaikan
                 </Text>
               </View>
             </View>
@@ -148,9 +163,8 @@ export default function Index() {
 
             <View style={styles.reportCard}>
               <View style={styles.reportTopRow}>
-                <Text style={{ fontSize: 18 }}>⚠️</Text>
                 <View style={styles.reportBadge}>
-                  <Text style={styles.reportBadgeText}>⚡ Perlu Penanganan</Text>
+                  <Text style={styles.reportBadgeText}>Perlu Penanganan</Text>
                 </View>
               </View>
 
@@ -161,7 +175,7 @@ export default function Index() {
 
               <View style={styles.reportFooterRow}>
                 <Text style={styles.reportFooterText}>
-                  📍 Ruang 201 (GKB 2) · Status: Dalam Antrean Teknisi
+                  Ruang 201 (GKB 2) · Status: Dalam Antrean Teknisi
                 </Text>
               </View>
             </View>

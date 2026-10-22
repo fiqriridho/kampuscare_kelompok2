@@ -1,7 +1,7 @@
 import React from "react";
 import { Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
-import { rooms, RoomStatus } from "../data/rooms";
+import { Room, rooms, RoomStatus } from "../data/rooms";
 
 const STATUS_CONFIG: Record<
   RoomStatus,
@@ -18,7 +18,7 @@ const STATUS_CONFIG: Record<
     background: "#F0FDF4",
     text: "#166534",
     border: "#BBF7D0",
-    dot: "🟢",
+    dot: "•",
   },
 
   occupied: {
@@ -26,7 +26,7 @@ const STATUS_CONFIG: Record<
     background: "#FFF1F2",
     text: "#9F1239",
     border: "#FECDD3",
-    dot: "🔴",
+    dot: "•",
   },
 
   upcoming: {
@@ -34,7 +34,7 @@ const STATUS_CONFIG: Record<
     background: "#FFFBEB",
     text: "#92400E",
     border: "#FDE68A",
-    dot: "🟡",
+    dot: "•",
   },
 
   maintenance: {
@@ -42,7 +42,7 @@ const STATUS_CONFIG: Record<
     background: "#F8FAFC",
     text: "#475569",
     border: "#E2E8F0",
-    dot: "🔧",
+    dot: "•",
   },
 };
 
@@ -51,17 +51,20 @@ export const ubahStatus = (status: RoomStatus): string => {
 };
 
 interface RoomListProps {
-  search: string;
+  rooms?: Room[];
+  search?: string;
   onSelectRoom: (roomId: string) => void;
 }
 
-export const RoomList = ({ search, onSelectRoom }: RoomListProps) => {
-  const normalizedSearch = search.trim().toLocaleLowerCase();
-  const filteredRooms = rooms.filter((room) =>
-    `${room.id} ${room.name} ${room.building}`
-      .toLocaleLowerCase()
-      .includes(normalizedSearch)
-  );
+export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListProps) => {
+  const normalizedSearch = (search ?? "").trim().toLowerCase();
+  const displayedRooms =
+    propRooms ??
+    (search !== undefined
+      ? rooms.filter((room) =>
+          room.name.toLowerCase().includes(normalizedSearch)
+        )
+      : rooms);
 
   return (
     <ScrollView
@@ -73,21 +76,23 @@ export const RoomList = ({ search, onSelectRoom }: RoomListProps) => {
         paddingHorizontal: 2,
       }}
     >
-      {filteredRooms.length === 0 ? (
+      {displayedRooms.length === 0 ? (
         <Text style={{ color: "#64748B", paddingVertical: 12 }}>
-          Ruangan tidak ditemukan.
+          Ruangan tidak ditemukan
         </Text>
       ) : (
-        filteredRooms.map((room) => {
+        displayedRooms.map((room) => {
           const status = STATUS_CONFIG[room.status];
+          const isClickable = room.id === "R308" || room.name === "Ruang 308";
 
           return (
             <TouchableOpacity
               key={room.id}
-              accessibilityRole="button"
-              accessibilityLabel={`Lihat detail ${room.name}`}
-              activeOpacity={0.8}
-              onPress={() => onSelectRoom(room.id)}
+              disabled={!isClickable}
+              activeOpacity={isClickable ? 0.8 : 1}
+              accessibilityRole={isClickable ? "button" : undefined}
+              accessibilityLabel={isClickable ? `Lihat detail ${room.name}` : undefined}
+              onPress={isClickable ? () => onSelectRoom(room.id) : undefined}
               style={{
                 width: 280,
                 backgroundColor: "#FFFFFF",
@@ -131,7 +136,7 @@ export const RoomList = ({ search, onSelectRoom }: RoomListProps) => {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontSize: 18 }}>🚪</Text>
+                  <Text style={{ fontSize: 11, fontWeight: "800", color: "#475569" }}>RK</Text>
                 </View>
                 <Text
                   style={{
@@ -199,7 +204,7 @@ export const RoomList = ({ search, onSelectRoom }: RoomListProps) => {
                     marginTop: 2,
                   }}
                 >
-                  🏛️ {room.building}
+                  {room.building}
                 </Text>
               </View>
 
@@ -225,7 +230,7 @@ export const RoomList = ({ search, onSelectRoom }: RoomListProps) => {
                     marginTop: 2,
                   }}
                 >
-                  👥 {room.capacity} org
+                  {room.capacity} orang
                 </Text>
               </View>
             </View>

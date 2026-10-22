@@ -18,10 +18,10 @@ const STATUS_DETAILS: Record<
   RoomStatus,
   { label: string; icon: string; color: string }
 > = {
-  empty: { label: "Kosong", icon: "🟢", color: "#166534" },
-  occupied: { label: "Terpakai", icon: "🔴", color: "#9F1239" },
-  upcoming: { label: "Akan Datang", icon: "🟡", color: "#92400E" },
-  maintenance: { label: "Perbaikan", icon: "🔧", color: "#475569" },
+  empty: { label: "Kosong", icon: "•", color: "#166534" },
+  occupied: { label: "Terpakai", icon: "•", color: "#9F1239" },
+  upcoming: { label: "Akan Datang", icon: "•", color: "#92400E" },
+  maintenance: { label: "Perbaikan", icon: "•", color: "#475569" },
 };
 
 export default function DetailRuanganScreen() {
@@ -102,19 +102,16 @@ export default function DetailRuanganScreen() {
           {/* Quick Info Grid */}
           <View style={detailStyles.statsGrid}>
             <View style={detailStyles.statCard}>
-              <Text style={detailStyles.statIcon}>👥</Text>
               <Text style={detailStyles.statValue}>{room.capacity} Orang</Text>
               <Text style={detailStyles.statLabel}>Kapasitas</Text>
             </View>
 
             <View style={detailStyles.statCard}>
-              <Text style={detailStyles.statIcon}>🏛️</Text>
               <Text style={detailStyles.statValue}>{room.building}</Text>
               <Text style={detailStyles.statLabel}>Gedung</Text>
             </View>
 
             <View style={detailStyles.statCard}>
-              <Text style={detailStyles.statIcon}>📶</Text>
               <Text style={detailStyles.statValue}>Tersedia</Text>
               <Text style={detailStyles.statLabel}>Wi-Fi Kampus</Text>
             </View>
@@ -128,7 +125,7 @@ export default function DetailRuanganScreen() {
             </Text>
 
             <View style={globalStyles.infoRow}>
-              <Text style={detailStyles.facilityItem}>📽️ Proyektor LCD</Text>
+              <Text style={detailStyles.facilityItem}>Proyektor LCD</Text>
               <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
                 <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Berfungsi
@@ -137,7 +134,7 @@ export default function DetailRuanganScreen() {
             </View>
 
             <View style={globalStyles.infoRow}>
-              <Text style={detailStyles.facilityItem}>❄️ AC Pendingin (2 Unit)</Text>
+              <Text style={detailStyles.facilityItem}>AC Pendingin (2 Unit)</Text>
               <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
                 <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Dingin
@@ -146,7 +143,7 @@ export default function DetailRuanganScreen() {
             </View>
 
             <View style={globalStyles.infoRow}>
-              <Text style={detailStyles.facilityItem}>💡 Penerangan Ruangan</Text>
+              <Text style={detailStyles.facilityItem}>Penerangan Ruangan</Text>
               <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
                 <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Normal
@@ -155,7 +152,7 @@ export default function DetailRuanganScreen() {
             </View>
 
             <View style={globalStyles.infoRow}>
-              <Text style={detailStyles.facilityItem}>📋 Papan Tulis & Spidol</Text>
+              <Text style={detailStyles.facilityItem}>Papan Tulis & Spidol</Text>
               <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
                 <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Lengkap
@@ -164,7 +161,7 @@ export default function DetailRuanganScreen() {
             </View>
 
             <View style={[globalStyles.infoRow, { borderBottomWidth: 0 }]}>
-              <Text style={detailStyles.facilityItem}>🔌 Terminal Listrik</Text>
+              <Text style={detailStyles.facilityItem}>Terminal Listrik</Text>
               <View style={[globalStyles.badge, { backgroundColor: "#F0FDF4" }]}>
                 <Text style={[globalStyles.badgeText, { color: "#166534" }]}>
                   Aman
@@ -180,7 +177,7 @@ export default function DetailRuanganScreen() {
             onPress={handleReport}
           >
             <Text style={globalStyles.submitButtonText}>
-              🚨 Laporkan Kendala di Ruangan Ini
+              Laporkan Kendala di Ruangan Ini
             </Text>
           </TouchableOpacity>
             </>
@@ -282,10 +279,6 @@ const detailStyles = StyleSheet.create({
       },
       default: {},
     }),
-  },
-  statIcon: {
-    fontSize: 22,
-    marginBottom: 4,
   },
   statValue: {
     fontSize: 13.5,
