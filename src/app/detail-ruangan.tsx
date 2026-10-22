@@ -9,16 +9,71 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
+import { RoomStatus, rooms } from "../data/rooms";
 import { styles as globalStyles } from "../style/UIstyles";
 
+const STATUS_DETAILS: Record<
+  RoomStatus,
+  { label: string; icon: string; color: string }
+> = {
+  empty: { label: "Kosong", icon: "🟢", color: "#166534" },
+  occupied: { label: "Terpakai", icon: "🔴", color: "#9F1239" },
+  upcoming: { label: "Akan Datang", icon: "🟡", color: "#92400E" },
+  maintenance: { label: "Perbaikan", icon: "🔧", color: "#475569" },
+};
+
 export default function DetailRuanganScreen() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string | string[] }>();
+  const roomId = typeof id === "string" ? id : undefined;
+  const room = rooms.find((item) => item.id === roomId);
+
+  const handleBack = () => router.back();
+  const handleGoHome = () => router.replace("/");
+  const handleReport = () => {
+    if (room) {
+      router.push({
+        pathname: "/laporan-kerusakan",
+        params: { roomId: room.id },
+      });
+    }
+  };
+
   return (
     <SafeAreaView style={globalStyles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#7F1D1D" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={globalStyles.content}>
+          {!room ? (
+            <View style={globalStyles.card}>
+              <Text style={globalStyles.sectionTitle}>Ruangan tidak ditemukan</Text>
+              <Text style={globalStyles.sectionDescription}>
+                ID ruangan {roomId ? `"${roomId}"` : "tidak tersedia"} tidak
+                cocok dengan data ruangan.
+              </Text>
+              <TouchableOpacity
+                style={globalStyles.submitButton}
+                activeOpacity={0.85}
+                onPress={handleGoHome}
+              >
+                <Text style={globalStyles.submitButtonText}>
+                  Kembali ke Beranda
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={handleBack}
+                style={detailStyles.backButton}
+              >
+                <Text style={detailStyles.backButtonText}>‹ Kembali</Text>
+              </TouchableOpacity>
+
           {/* Room Hero Banner */}
           <View style={detailStyles.heroBanner}>
             <View style={detailStyles.heroBadgeRow}>
@@ -26,13 +81,21 @@ export default function DetailRuanganScreen() {
                 <Text style={detailStyles.heroTagText}>Ruang Kelas</Text>
               </View>
               <View style={detailStyles.statusBadge}>
-                <Text style={detailStyles.statusBadgeText}>🟢 Kosong</Text>
+                <Text
+                  style={[
+                    detailStyles.statusBadgeText,
+                    { color: STATUS_DETAILS[room.status].color },
+                  ]}
+                >
+                  {STATUS_DETAILS[room.status].icon}{" "}
+                  {STATUS_DETAILS[room.status].label}
+                </Text>
               </View>
             </View>
 
-            <Text style={detailStyles.roomTitle}>Ruang 308</Text>
+            <Text style={detailStyles.roomTitle}>{room.name}</Text>
             <Text style={detailStyles.roomSubtitle}>
-              Gedung Kuliah Bersama 2 (GKB 2) · Lantai 3
+              Gedung {room.building} · ID {room.id}
             </Text>
           </View>
 
@@ -40,13 +103,13 @@ export default function DetailRuanganScreen() {
           <View style={detailStyles.statsGrid}>
             <View style={detailStyles.statCard}>
               <Text style={detailStyles.statIcon}>👥</Text>
-              <Text style={detailStyles.statValue}>50 Orang</Text>
+              <Text style={detailStyles.statValue}>{room.capacity} Orang</Text>
               <Text style={detailStyles.statLabel}>Kapasitas</Text>
             </View>
 
             <View style={detailStyles.statCard}>
               <Text style={detailStyles.statIcon}>🏛️</Text>
-              <Text style={detailStyles.statValue}>GKB 2</Text>
+              <Text style={detailStyles.statValue}>{room.building}</Text>
               <Text style={detailStyles.statLabel}>Gedung</Text>
             </View>
 
@@ -114,11 +177,14 @@ export default function DetailRuanganScreen() {
           <TouchableOpacity
             style={globalStyles.submitButton}
             activeOpacity={0.85}
+            onPress={handleReport}
           >
             <Text style={globalStyles.submitButtonText}>
               🚨 Laporkan Kendala di Ruangan Ini
             </Text>
           </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -238,5 +304,16 @@ const detailStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#1E293B",
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 10,
+  },
+  backButtonText: {
+    color: "#7F1D1D",
+    fontSize: 15,
+    fontWeight: "700",
   },
 });

@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { rooms } from "../data/rooms";
 import { styles as globalStyles } from "../style/UIstyles";
@@ -64,9 +65,18 @@ const PRIORITIES: PriorityOption[] = [
 ];
 
 export default function LaporanKerusakanScreen() {
+  const router = useRouter();
+  const { roomId } = useLocalSearchParams<{
+    roomId?: string | string[];
+  }>();
+  const selectedRoomId =
+    typeof roomId === "string" ? roomId : undefined;
+  const selectedRoom = rooms.find((room) => room.id === selectedRoomId);
   const [selectedCategory, setSelectedCategory] = useState("proyektor");
   const [selectedPriority, setSelectedPriority] = useState("medium");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState(
+    selectedRoom ? `${selectedRoom.name} (${selectedRoom.building})` : ""
+  );
   const [description, setDescription] = useState("");
   const [hasPhoto, setHasPhoto] = useState(false);
 
@@ -108,19 +118,15 @@ export default function LaporanKerusakanScreen() {
     const priorityObj = PRIORITIES.find((p) => p.id === selectedPriority);
 
     Alert.alert(
-      "🎉 Laporan Berhasil Dikirim!",
-      `Terima kasih atas kepedulian Anda.\n\nDetail:\n• Fasilitas: ${categoryObj?.label}\n• Lokasi: ${location}\n• Prioritas: ${priorityObj?.label}\n• Bukti Foto: ${
+      "Simulasi Laporan Selesai",
+      `Simulasi pengisian selesai. Laporan ini tidak disimpan atau dikirim ke petugas.\n\nDetail:\n• Fasilitas: ${categoryObj?.label}\n• Lokasi: ${location}\n• Prioritas: ${priorityObj?.label}\n• Bukti Foto: ${
         hasPhoto ? "Tersedia" : "Tidak ada"
-      }\n\nTim Sarpras KampusCare akan segera menindaklanjuti laporan ini.`,
+      }`,
       [
         {
           text: "Selesai",
           onPress: () => {
-            setLocation("");
-            setDescription("");
-            setHasPhoto(false);
-            setSelectedPriority("medium");
-            setSelectedCategory("proyektor");
+            router.replace("/");
           },
         },
       ]
@@ -139,6 +145,14 @@ export default function LaporanKerusakanScreen() {
           contentContainerStyle={{ paddingBottom: 40 }}
         >
           <View style={globalStyles.content}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => router.back()}
+              style={customStyles.cancelButton}
+            >
+              <Text style={customStyles.cancelButtonText}>‹ Batal</Text>
+            </TouchableOpacity>
+
             {/* Header Banner */}
             <View style={customStyles.heroBanner}>
               <View style={customStyles.heroIconContainer}>
@@ -158,8 +172,8 @@ export default function LaporanKerusakanScreen() {
             <View style={customStyles.noticeCard}>
               <Text style={customStyles.noticeIcon}>💡</Text>
               <Text style={customStyles.noticeText}>
-                Laporan yang Anda kirim akan langsung diterima oleh petugas
-                teknisi dan dipantau status penanganannya.
+                Form ini hanya simulasi. Data laporan tidak disimpan atau
+                dikirim ke petugas.
               </Text>
             </View>
 
@@ -400,6 +414,17 @@ const customStyles = StyleSheet.create({
       },
       default: {},
     }),
+  },
+  cancelButton: {
+    alignSelf: "flex-start",
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 10,
+  },
+  cancelButtonText: {
+    color: "#7F1D1D",
+    fontSize: 15,
+    fontWeight: "700",
   },
   heroIconContainer: {
     width: 52,

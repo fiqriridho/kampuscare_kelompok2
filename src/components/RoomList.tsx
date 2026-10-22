@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, ScrollView, Text, View } from "react-native";
+import { Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { rooms, RoomStatus } from "../data/rooms";
 
@@ -50,7 +50,19 @@ export const ubahStatus = (status: RoomStatus): string => {
   return STATUS_CONFIG[status].label;
 };
 
-export const RoomList = () => {
+interface RoomListProps {
+  search: string;
+  onSelectRoom: (roomId: string) => void;
+}
+
+export const RoomList = ({ search, onSelectRoom }: RoomListProps) => {
+  const normalizedSearch = search.trim().toLocaleLowerCase();
+  const filteredRooms = rooms.filter((room) =>
+    `${room.id} ${room.name} ${room.building}`
+      .toLocaleLowerCase()
+      .includes(normalizedSearch)
+  );
+
   return (
     <ScrollView
       horizontal
@@ -61,33 +73,42 @@ export const RoomList = () => {
         paddingHorizontal: 2,
       }}
     >
-      {rooms.map((room) => {
-        const status = STATUS_CONFIG[room.status];
+      {filteredRooms.length === 0 ? (
+        <Text style={{ color: "#64748B", paddingVertical: 12 }}>
+          Ruangan tidak ditemukan.
+        </Text>
+      ) : (
+        filteredRooms.map((room) => {
+          const status = STATUS_CONFIG[room.status];
 
-        return (
-          <View
-            key={room.id}
-            style={{
-              width: 280,
-              backgroundColor: "#FFFFFF",
-              borderRadius: 16,
-              padding: 18,
-              borderWidth: 1.5,
-              borderColor: "#E2E8F0",
-              ...Platform.select({
-                ios: {
-                  shadowColor: "#0F172A",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.04,
-                  shadowRadius: 6,
-                },
-                android: {
-                  elevation: 1,
-                },
-                default: {},
-              }),
-            }}
-          >
+          return (
+            <TouchableOpacity
+              key={room.id}
+              accessibilityRole="button"
+              accessibilityLabel={`Lihat detail ${room.name}`}
+              activeOpacity={0.8}
+              onPress={() => onSelectRoom(room.id)}
+              style={{
+                width: 280,
+                backgroundColor: "#FFFFFF",
+                borderRadius: 16,
+                padding: 18,
+                borderWidth: 1.5,
+                borderColor: "#E2E8F0",
+                ...Platform.select({
+                  ios: {
+                    shadowColor: "#0F172A",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 6,
+                  },
+                  android: {
+                    elevation: 1,
+                  },
+                  default: {},
+                }),
+              }}
+            >
             {/* Header: Room Name & Status Badge */}
             <View
               style={{
@@ -208,9 +229,10 @@ export const RoomList = () => {
                 </Text>
               </View>
             </View>
-          </View>
-        );
-      })}
+            </TouchableOpacity>
+          );
+        })
+      )}
     </ScrollView>
   );
 };

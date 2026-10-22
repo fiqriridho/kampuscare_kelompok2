@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Alert,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -9,13 +8,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRouter } from "expo-router";
 
 import { RoomList } from "../components/RoomList";
 import { styles } from "../style/UIstyles";
 
 export default function Index() {
+  const router = useRouter();
+
   const handlePress = () => {
-    Alert.alert("Lapor Kerusakan", "Tombol Ditekan");
+    router.push("/laporan-kerusakan");
   };
   const [search, setSearch] = useState("");
 
@@ -90,7 +92,15 @@ export default function Index() {
               />
             </View>
 
-            <RoomList />
+            <RoomList
+              search={search}
+              onSelectRoom={(roomId) =>
+                router.push({
+                  pathname: "/detail-ruangan",
+                  params: { id: roomId },
+                })
+              }
+            />
           </View>
 
           {/* Status Ruang Kelas (Harmonious Pastel Cards) */}
