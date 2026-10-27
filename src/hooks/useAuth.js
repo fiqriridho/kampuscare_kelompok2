@@ -12,6 +12,7 @@ import {
   INITIAL_REPORTS_HISTORY,
 } from '../constants/mockData';
 import { getApiBaseUrl, API_ENDPOINTS } from '../constants/api';
+import saveReportPhoto from '../utils/saveReportPhoto';
 
 // ============================================================================
 // HELPER SECURE STORE (ANDROID & IOS NATIVE) & IN-MEMORY WEB FALLBACK
@@ -455,28 +456,39 @@ export const useAuth = () => {
   // ----------------------------------------------------
   // 5. FITUR SIMULASI TAMBAH LAPORAN (ASYNCSTORAGE)
   // ----------------------------------------------------
-  const handleCreateNewReport = async () => {
+  const handleCreateNewReport = async (photoUri, details = {}) => {
     try {
+      const savedPhotoUri = photoUri ? await saveReportPhoto(photoUri) : null;
       const newReportItem = {
         id: Date.now().toString(),
         title: 'Kerusakan Fasilitas Kampus',
-        location: 'Gedung Kuliah Bersama',
+        location: details.location?.trim() || 'Belum ditentukan',
         status: 'Diproses',
         date: 'Hari ini',
+        ...(details.description?.trim()
+          ? { description: details.description.trim() }
+          : {}),
+        ...(savedPhotoUri ? { photoUri: savedPhotoUri } : {}),
       };
 
       const updatedHistory = [newReportItem, ...reportHistory];
-      setReportHistory(updatedHistory);
 
       // Simpan riwayat non-sensitif ke AsyncStorage
       await AsyncStorage.setItem(ASYNC_HISTORY_KEY, JSON.stringify(updatedHistory));
+      setReportHistory(updatedHistory);
 
       showAlert(
         'Laporan Terkirim! 📸',
-        'Laporan kerusakan berhasil dibuat dan tersimpan ke Local Storage (AsyncStorage).'
+        'Laporan kerusakan, deskripsi, dan foto berhasil disimpan ke riwayat lokal (AsyncStorage).'
       );
+      return true;
     } catch (error) {
       console.error('Gagal menambahkan laporan', error);
+      showAlert(
+        'Laporan Gagal Disimpan',
+        'Laporan belum dapat disimpan. Periksa ruang penyimpanan perangkat, lalu coba lagi.'
+      );
+      return false;
     }
   };
 

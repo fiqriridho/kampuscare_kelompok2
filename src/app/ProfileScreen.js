@@ -62,9 +62,21 @@ export default function ProfileScreen({
       ) : (
         reportHistory.map((item) => (
           <View key={item.id} style={styles.historyCard}>
+            {item.photoUri ? (
+              <Image
+                source={{ uri: item.photoUri }}
+                style={styles.historyPhoto}
+                accessibilityLabel="Foto laporan kerusakan"
+              />
+            ) : null}
             <View style={{ flex: 1 }}>
               <Text style={styles.historyTitle}>{item.title}</Text>
               <Text style={styles.historyLocation}>📍 {item.location}</Text>
+              {item.description ? (
+                <Text style={styles.historyDescription} numberOfLines={3}>
+                  {item.description}
+                </Text>
+              ) : null}
               <Text style={styles.historyDate}>{item.date}</Text>
             </View>
             <View
@@ -219,6 +231,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
+  historyPhoto: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    marginRight: 12,
+    backgroundColor: '#E2E8F0',
+  },
   historyTitle: {
     fontSize: 15,
     fontWeight: '700',
@@ -228,6 +247,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748B',
     marginTop: 2,
+  },
+  historyDescription: {
+    fontSize: 13,
+    color: '#334155',
+    marginTop: 6,
+    lineHeight: 18,
   },
   historyDate: {
     fontSize: 12,
