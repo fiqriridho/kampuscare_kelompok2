@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,6 +15,7 @@ import ProfileScreen from './src/app/ProfileScreen';
 import BottomNavigation from './src/components/BottomNavigation';
 
 export default function App() {
+  const [isCameraFullscreen, setIsCameraFullscreen] = useState(false);
   const {
     activeTab,
     setActiveTab,
@@ -101,13 +102,31 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={isCameraFullscreen ? [] : ['top', 'right', 'bottom', 'left']}
+    >
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#F8FAFC"
+        hidden={isCameraFullscreen}
+      />
 
       {/* Dynamic Screen View */}
       {activeTab === 'Home' && <HomeScreen userProfile={userProfile} />}
       {activeTab === 'Camera' && (
-        <CameraScreen handleCreateNewReport={handleCreateNewReport} />
+        <CameraScreen
+          handleCreateNewReport={handleCreateNewReport}
+          onCameraFullscreenChange={setIsCameraFullscreen}
+          onExitCamera={() => {
+            setIsCameraFullscreen(false);
+            setActiveTab('Home');
+          }}
+          onReportSubmitted={() => {
+            setIsCameraFullscreen(false);
+            setActiveTab('Profile');
+          }}
+        />
       )}
       {activeTab === 'Profile' && (
         <ProfileScreen
@@ -118,7 +137,9 @@ export default function App() {
       )}
 
       {/* Modern Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      {!isCameraFullscreen && (
+        <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      )}
     </SafeAreaView>
   );
 }

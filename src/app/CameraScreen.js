@@ -12,10 +12,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 
-export default function CameraScreen({ handleCreateNewReport }) {
+export default function CameraScreen({
+  handleCreateNewReport,
+  onCameraFullscreenChange,
+  onExitCamera,
+  onReportSubmitted,
+}) {
+  const insets = useSafeAreaInsets();
   const cameraRef = useRef(null);
   const permissionRequestStarted = useRef(false);
   const [permission, requestPermission, getPermission] = useCameraPermissions();
@@ -30,6 +37,7 @@ export default function CameraScreen({ handleCreateNewReport }) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraUnavailable, setCameraUnavailable] = useState(false);
   const [photo, setPhoto] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
   const [buildingLocation, setBuildingLocation] = useState('');
   const [damageDescription, setDamageDescription] = useState('');
   const [galleryPermissionBlocked, setGalleryPermissionBlocked] = useState(false);
@@ -51,6 +59,10 @@ export default function CameraScreen({ handleCreateNewReport }) {
   }, [requestPermission]);
 
   const currentPermission = refreshedPermission || permission;
+
+  useEffect(() => {
+    onCameraFullscreenChange?.(!showDetails);
+  }, [onCameraFullscreenChange, showDetails]);
 
   useEffect(() => {
     let previousState = AppState.currentState;
@@ -86,6 +98,7 @@ export default function CameraScreen({ handleCreateNewReport }) {
     }
   }, [askForPermission, currentPermission]);
 
+  //camera
   const capturePhoto = async () => {
     if (!cameraRef.current || !isCameraReady || isCapturing) {
       return;
@@ -160,6 +173,7 @@ export default function CameraScreen({ handleCreateNewReport }) {
       if (!result.canceled && result.assets[0]?.uri) {
         setPhoto({ uri: result.assets[0].uri });
         setIsCameraReady(false);
+        setShowDetails(false);
       }
     } catch (error) {
       console.error('Gagal memilih foto dari galeri', error);
@@ -183,7 +197,7 @@ export default function CameraScreen({ handleCreateNewReport }) {
     }
   };
 
-  const usePhoto = async () => {
+  const submitReport = async () => {
     if (!photo || isCapturing) {
       return;
     }
@@ -199,8 +213,10 @@ export default function CameraScreen({ handleCreateNewReport }) {
       if (reportCreated) {
         setIsCameraReady(false);
         setPhoto(null);
+        setShowDetails(false);
         setBuildingLocation('');
         setDamageDescription('');
+        onReportSubmitted?.();
       }
     } catch (error) {
       console.error('Gagal menggunakan foto untuk laporan', error);
@@ -212,77 +228,66 @@ export default function CameraScreen({ handleCreateNewReport }) {
 
   const permissionDenied = currentPermission && !currentPermission.granted;
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>Laporan Kerusakan</Text>
-        <Text style={styles.subtitle}>
-          Arahkan kamera ke fasilitas yang rusak untuk melampirkan foto pada laporan.
-        </Text>
-      </View>
-
-      <View style={styles.previewFrame}>
+  if (!showDetails) {
+    return (
+      <View style={styles.cameraScreen}>
         {photo ? (
-          <Image source={{ uri: photo.uri }} style={styles.preview} resizeMode="contain" />
+          <Image
+            source={{ uri: photo.uri }}
+            style={styles.fullscreenPreview}
+            resizeMode="cover"
+          />
         ) : permissionDenied ? (
-          <View style={styles.messageContainer}>
-            <Text style={styles.messageIcon}>📷</Text>
-            <Text style={styles.messageTitle}>Izin kamera diperlukan</Text>
-            <Text style={styles.messageText}>
-              Izinkan akses kamera agar Anda dapat melihat preview dan mengambil foto.
+          <View style={styles.cameraMessageContainer}>
+            <Text style={styles.cameraMessageTitle}>Izin kamera diperlukan</Text>
+            <Text style={styles.cameraMessageText}>
+              Izinkan akses kamera untuk mengambil foto laporan kerusakan.
             </Text>
-            {currentPermission.canAskAgain ? (
-              <TouchableOpacity
-                style={styles.messageButton}
-                onPress={askForPermission}
-                disabled={isRequestingPermission}
-                activeOpacity={0.8}
-              >
-                {isRequestingPermission ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.messageButtonText}>Minta Izin Kamera</Text>
-                )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.messageButton}
-                onPress={openSettings}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.messageButtonText}>Buka Pengaturan</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={styles.cameraMessageButton}
+              onPress={currentPermission.canAskAgain ? askForPermission : openSettings}
+              disabled={isRequestingPermission}
+              activeOpacity={0.8}
+            >
+              {isRequestingPermission ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.primaryButtonText}>
+                  {currentPermission.canAskAgain ? 'Minta Izin Kamera' : 'Buka Pengaturan'}
+                </Text>
+              )}
+            </TouchableOpacity>
           </View>
         ) : !currentPermission ? (
-          <View style={styles.messageContainer}>
-            <ActivityIndicator size="large" color="#4F46E5" />
-            <Text style={styles.messageText}>Memeriksa izin kamera...</Text>
+          <View style={styles.cameraMessageContainer}>
+            <ActivityIndicator size="large" color="#FFFFFF" />
+            <Text style={styles.cameraMessageText}>Memeriksa izin kamera...</Text>
           </View>
         ) : cameraUnavailable ? (
-          <View style={styles.messageContainer}>
-            <Text style={styles.messageIcon}>⚠️</Text>
-            <Text style={styles.messageTitle}>Kamera tidak tersedia</Text>
-            <Text style={styles.messageText}>
-              Kamera tidak dapat dibuka. Pastikan kamera tidak sedang digunakan aplikasi lain.
+          <View style={styles.cameraMessageContainer}>
+            <Text style={styles.cameraMessageTitle}>Kamera tidak tersedia</Text>
+            <Text style={styles.cameraMessageText}>
+              Pastikan kamera tidak sedang digunakan aplikasi lain.
             </Text>
-            <TouchableOpacity style={styles.messageButton} onPress={retryCamera} activeOpacity={0.8}>
-              <Text style={styles.messageButtonText}>Coba Lagi</Text>
+            <TouchableOpacity
+              style={styles.cameraMessageButton}
+              onPress={retryCamera}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.primaryButtonText}>Coba Lagi</Text>
             </TouchableOpacity>
           </View>
         ) : !isAppActive ? (
-          <View style={styles.messageContainer}>
-            <Text style={styles.messageText}>Kamera dijeda saat aplikasi tidak aktif.</Text>
+          <View style={styles.cameraMessageContainer}>
+            <Text style={styles.cameraMessageText}>
+              Kamera dijeda saat aplikasi tidak aktif.
+            </Text>
           </View>
         ) : (
           <>
             <CameraView
               ref={cameraRef}
-              style={styles.preview}
+              style={styles.fullscreenPreview}
               facing="back"
               onCameraReady={() => setIsCameraReady(true)}
               onMountError={(event) => {
@@ -299,7 +304,127 @@ export default function CameraScreen({ handleCreateNewReport }) {
             )}
           </>
         )}
+
+        <View style={[styles.cameraHeader, { paddingTop: insets.top + 16 }]}>
+          <TouchableOpacity
+            style={styles.cameraBackButton}
+            onPress={onExitCamera}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.cameraBackText}>‹ Kembali</Text>
+          </TouchableOpacity>
+          <Text style={styles.cameraTitle}>
+            {photo ? 'Periksa Foto' : 'Laporan Kerusakan'}
+          </Text>
+          <Text style={styles.cameraSubtitle}>
+            {photo
+              ? 'Pastikan foto kerusakan terlihat jelas.'
+              : 'Arahkan kamera ke fasilitas yang rusak.'}
+          </Text>
+        </View>
+
+        <View
+          style={[
+            styles.cameraControls,
+            { paddingBottom: insets.bottom + 24 },
+          ]}
+        >
+          {photo ? (
+            <>
+              <TouchableOpacity
+                style={styles.reviewButton}
+                onPress={() => {
+                  setPhoto(null);
+                  setIsCameraReady(false);
+                  setErrorMessage('');
+                }}
+                disabled={isCapturing}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.reviewSecondaryText}>Ambil Ulang</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.reviewContinueButton}
+                onPress={() => setShowDetails(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.reviewContinueText}>Foto Cocok, Lanjutkan</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.galleryControl}
+                onPress={choosePhoto}
+                disabled={isCapturing}
+                activeOpacity={0.8}
+              >
+                {isCapturing ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.galleryControlText}>Galeri</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.captureButton,
+                  (!isAppActive ||
+                    !isCameraReady ||
+                    isCapturing ||
+                    permissionDenied ||
+                    cameraUnavailable) &&
+                    styles.captureButtonDisabled,
+                ]}
+                onPress={capturePhoto}
+                disabled={
+                  !isAppActive ||
+                  !isCameraReady ||
+                  isCapturing ||
+                  permissionDenied ||
+                  cameraUnavailable
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Ambil foto"
+                activeOpacity={0.8}
+              >
+                {isCapturing ? <ActivityIndicator color="#0F172A" /> : null}
+              </TouchableOpacity>
+              <View style={styles.galleryControlPlaceholder} />
+            </>
+          )}
+          {errorMessage ? <Text style={styles.cameraErrorText}>{errorMessage}</Text> : null}
+          {galleryPermissionBlocked ? (
+            <TouchableOpacity onPress={openSettings} activeOpacity={0.8}>
+              <Text style={styles.cameraSettingsLink}>Buka Pengaturan</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>Laporan Kerusakan</Text>
+      </View>
+
+      <Image
+        source={{ uri: photo.uri }}
+        style={styles.detailsPreview}
+        resizeMode="cover"
+      />
+      <TouchableOpacity
+        style={styles.changePhotoButton}
+        onPress={() => setShowDetails(false)}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.secondaryButtonText}>Ganti Foto</Text>
+      </TouchableOpacity>
 
       <View style={styles.form}>
         <Text style={styles.fieldLabel}>Gedung / lokasi</Text>
@@ -331,75 +456,20 @@ export default function CameraScreen({ handleCreateNewReport }) {
 
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.secondaryButton, styles.galleryButton]}
-          onPress={choosePhoto}
-          disabled={isCapturing}
+          style={[
+            styles.primaryButton,
+            (isCapturing || !damageDescription.trim()) && styles.disabledButton,
+          ]}
+          onPress={submitReport}
+          disabled={isCapturing || !damageDescription.trim()}
           activeOpacity={0.8}
         >
-          {isCapturing && !photo ? (
-            <ActivityIndicator color="#4F46E5" />
+          {isCapturing ? (
+            <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.secondaryButtonText}>Pilih Foto dari Galeri</Text>
+            <Text style={styles.primaryButtonText}>Kirim Laporan</Text>
           )}
         </TouchableOpacity>
-        {photo ? (
-          <>
-            <TouchableOpacity
-              style={[
-                styles.primaryButton,
-                (isCapturing || !damageDescription.trim()) && styles.disabledButton,
-              ]}
-              onPress={usePhoto}
-              disabled={isCapturing || !damageDescription.trim()}
-              activeOpacity={0.8}
-            >
-              {isCapturing ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.primaryButtonText}>Gunakan Foto</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => {
-                setPhoto(null);
-                setIsCameraReady(false);
-                setErrorMessage('');
-              }}
-              disabled={isCapturing}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.secondaryButtonText}>Ambil Ulang</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <TouchableOpacity
-            style={[
-              styles.primaryButton,
-              (!isAppActive ||
-                !isCameraReady ||
-                isCapturing ||
-                permissionDenied ||
-                cameraUnavailable) &&
-                styles.disabledButton,
-            ]}
-            onPress={capturePhoto}
-            disabled={
-              !isAppActive ||
-              !isCameraReady ||
-              isCapturing ||
-              permissionDenied ||
-              cameraUnavailable
-            }
-            activeOpacity={0.8}
-          >
-            {isCapturing ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Ambil Foto</Text>
-            )}
-          </TouchableOpacity>
-        )}
         {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
         {galleryPermissionBlocked ? (
           <TouchableOpacity onPress={openSettings} activeOpacity={0.8}>
@@ -415,6 +485,156 @@ export default function CameraScreen({ handleCreateNewReport }) {
 }
 
 const styles = StyleSheet.create({
+  cameraScreen: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  fullscreenPreview: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  cameraHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 28,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+  cameraTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  cameraBackButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 14,
+    paddingVertical: 6,
+  },
+  cameraBackText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  cameraSubtitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginTop: 5,
+  },
+  cameraControls: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    minHeight: 150,
+    paddingHorizontal: 28,
+    paddingTop: 24,
+    paddingBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  galleryControl: {
+    width: 64,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  galleryControlText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  galleryControlPlaceholder: {
+    width: 64,
+  },
+  captureButton: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    borderWidth: 5,
+    borderColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF',
+  },
+  captureButtonDisabled: {
+    opacity: 0.5,
+  },
+  reviewButton: {
+    minHeight: 52,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  reviewSecondaryText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  reviewContinueButton: {
+    minHeight: 52,
+    flex: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+    backgroundColor: '#4F46E5',
+  },
+  reviewContinueText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  cameraMessageContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    backgroundColor: '#0F172A',
+  },
+  cameraMessageTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  cameraMessageText: {
+    color: '#E2E8F0',
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  cameraMessageButton: {
+    minHeight: 48,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    backgroundColor: '#4F46E5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  cameraErrorText: {
+    position: 'absolute',
+    bottom: 120,
+    left: 16,
+    right: 16,
+    color: '#FCA5A5',
+    textAlign: 'center',
+  },
+  cameraSettingsLink: {
+    position: 'absolute',
+    bottom: 4,
+    left: 0,
+    right: 0,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontWeight: '700',
+  },
   container: {
     flex: 1,
   },
@@ -432,21 +652,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0F172A',
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 4,
-    lineHeight: 20,
-  },
-  previewFrame: {
-    height: 300,
-    overflow: 'hidden',
-    borderRadius: 24,
+  detailsPreview: {
+    width: '100%',
+    aspectRatio: 3 / 4,
+    borderRadius: 18,
     backgroundColor: '#0F172A',
   },
-  preview: {
-    width: '100%',
-    height: '100%',
+  changePhotoButton: {
+    minHeight: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -458,44 +674,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     marginTop: 10,
-  },
-  messageContainer: {
-    flex: 1,
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  messageIcon: {
-    fontSize: 42,
-    marginBottom: 12,
-  },
-  messageTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0F172A',
-    textAlign: 'center',
-  },
-  messageText: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  messageButton: {
-    minHeight: 46,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    backgroundColor: '#4F46E5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 18,
-  },
-  messageButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 14,
   },
   actions: {
     alignItems: 'center',
@@ -546,21 +724,6 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.55,
-  },
-  secondaryButton: {
-    width: '100%',
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  galleryButton: {
-    marginTop: 0,
-    marginBottom: 10,
-    backgroundColor: '#FFFFFF',
   },
   secondaryButtonText: {
     color: '#334155',
