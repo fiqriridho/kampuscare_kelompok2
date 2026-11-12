@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import React from "react";
 
 export default function RootLayout() {
   return (
@@ -28,6 +29,12 @@ export default function RootLayout() {
         name="detail-ruangan"
         options={{
           title: "Detail Ruangan",
+        }}
+      />
+      <Stack.Screen
+        name="detail-lokasi"
+        options={{
+          title: "Detail Lokasi",
         }}
       />
       <Stack.Screen

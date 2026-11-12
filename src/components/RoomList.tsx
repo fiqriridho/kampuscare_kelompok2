@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { locationService } from "../services/locationService";
 import { styles } from "../style/UIstyles";
 import type { Location } from "../types/location";
@@ -17,6 +18,7 @@ interface RoomListProps {
 }
 
 export const RoomList = ({ search, reloadSignal }: RoomListProps) => {
+  const router = useRouter();
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +36,7 @@ export const RoomList = ({ search, reloadSignal }: RoomListProps) => {
         if (!cancelled) setLocations(items);
       } catch (err: unknown) {
         if (!cancelled) {
+          setLocations([]);
           setError(
             err instanceof Error ? err.message : "Gagal memuat data lokasi"
           );
@@ -84,10 +87,13 @@ export const RoomList = ({ search, reloadSignal }: RoomListProps) => {
       )}
 
       {!loading && error && (
-        <View style={{ paddingVertical: 12, gap: 8 }}>
+        <View style={{ width: "100%", paddingVertical: 12, gap: 8 }}>
           <Text style={{ color: "#B91C1C", fontWeight: "600" }}>{error}</Text>
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[
+              styles.actionButton,
+              { width: "100%", flex: 0, minWidth: 0 },
+            ]}
             activeOpacity={0.85}
             onPress={() => setTick((t) => t + 1)}
             disabled={loading}
@@ -106,8 +112,19 @@ export const RoomList = ({ search, reloadSignal }: RoomListProps) => {
       {!loading &&
         !error &&
         renderedLocations.map((location) => (
-          <View
+          <TouchableOpacity
             key={location.name}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({
+                pathname: "/detail-lokasi",
+                params: {
+                  name: location.name,
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                },
+              })
+            }
             style={{
               width: 280,
               backgroundColor: "#FFFFFF",
@@ -265,7 +282,7 @@ export const RoomList = ({ search, reloadSignal }: RoomListProps) => {
                 </Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
     </ScrollView>
   );
