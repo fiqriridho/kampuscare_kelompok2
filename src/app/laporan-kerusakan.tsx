@@ -5,7 +5,6 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 import { rooms } from "../data/rooms";
 import { styles as globalStyles } from "../style/UIstyles";
@@ -63,7 +63,8 @@ export default function LaporanKerusakanScreen() {
 
   return (
     <SafeAreaView style={globalStyles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#7F1D1D" />
+      <StatusBar style="dark" />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}

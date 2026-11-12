@@ -3,13 +3,13 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 import { RoomStatus, rooms } from "../data/rooms";
 import { styles as globalStyles } from "../style/UIstyles";
@@ -43,7 +43,7 @@ export default function DetailRuanganScreen() {
 
   return (
     <SafeAreaView style={globalStyles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#7F1D1D" />
+      <StatusBar style="dark" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={globalStyles.content}>

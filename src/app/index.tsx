@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
-  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
-import { Room, rooms } from "../data/rooms";
 import { RoomList } from "../components/RoomList";
+import { RoomCards } from "../components/RoomCards";
 import { styles } from "../style/UIstyles";
 
 export default function Index() {
@@ -21,32 +21,11 @@ export default function Index() {
     router.push("/laporan-kerusakan");
   };
 
-  // State untuk menyimpan kata kunci pencarian (FR-1.2)
   const [search, setSearch] = useState("");
-  // State untuk menyimpan daftar ruangan hasil pencarian
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>(rooms);
-
-  // useEffect untuk memproses pencarian saat kata kunci berubah (FR-1.3)
-  useEffect(() => {
-    const keyword = search.trim().toLowerCase();
-
-    // Jika kata kunci kosong, seluruh ruangan ditampilkan (FR-1.7)
-    if (!keyword) {
-      setFilteredRooms(rooms);
-    } else {
-      // Pencarian tidak sensitif huruf besar/kecil (FR-1.4)
-      // Hanya menampilkan ruangan yang namanya cocok dengan kata kunci (FR-1.5)
-      setFilteredRooms(
-        rooms.filter((room) =>
-          room.name.toLowerCase().includes(keyword)
-        )
-      );
-    }
-  }, [search]);
-
+  const [reloadSignal, setReloadSignal] = useState(0);
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#7F1D1D" />
+      <StatusBar style="dark" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
@@ -83,37 +62,55 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Ruang Kelas Section */}
+          {/* Lokasi Kampus Section (External API NTHU) */}
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Ruang Kelas</Text>
+              <Text style={styles.sectionTitle}>Lokasi Kampus</Text>
             </View>
 
             <Text style={styles.sectionDescription}>
-              Lihat status dan informasi ruang kelas.
+              Data lokasi dari API eksternal NTHU Taiwan (bukan fasilitas resmi
+              kampus).
             </Text>
 
             {/* Modern Clean Search Input */}
             <View style={styles.searchWrapper}>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Cari ruangan..."
+                placeholder="Cari lokasi..."
                 placeholderTextColor="#94A3B8"
                 value={search}
                 onChangeText={setSearch}
               />
             </View>
 
-            <RoomList
-              rooms={filteredRooms}
-              search={search}
+            <TouchableOpacity
+              style={styles.actionButton}
+              activeOpacity={0.85}
+              onPress={() => setReloadSignal((s) => s + 1)}
+            >
+              <Text style={styles.actionButtonText}>Muat Ulang Lokasi</Text>
+            </TouchableOpacity>
+
+            <RoomList search={search} reloadSignal={reloadSignal} />
+          </View>
+
+          {/* Ruang Kelas (Data Lokal KampusCare) */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>Ruang Kelas</Text>
+            </View>
+
+            <Text style={styles.sectionDescription}>
+              Lihat status dan informasi ruang kelas KampusCare.
+            </Text>
+
+            <RoomCards
               onSelectRoom={(roomId) => {
-                if (roomId === "R308") {
-                  router.push({
-                    pathname: "/detail-ruangan",
-                    params: { id: roomId },
-                  });
-                }
+                router.push({
+                  pathname: "/detail-ruangan",
+                  params: { id: roomId },
+                });
               }}
             />
           </View>

@@ -1,70 +1,63 @@
-import React from "react";
-import { Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
-
-import { Room, rooms, RoomStatus } from "../data/rooms";
-
-const STATUS_CONFIG: Record<
-  RoomStatus,
-  {
-    label: string;
-    background: string;
-    text: string;
-    border: string;
-    dot: string;
-  }
-> = {
-  empty: {
-    label: "Kosong",
-    background: "#F0FDF4",
-    text: "#166534",
-    border: "#BBF7D0",
-    dot: "•",
-  },
-
-  occupied: {
-    label: "Terpakai",
-    background: "#FFF1F2",
-    text: "#9F1239",
-    border: "#FECDD3",
-    dot: "•",
-  },
-
-  upcoming: {
-    label: "Akan Datang",
-    background: "#FFFBEB",
-    text: "#92400E",
-    border: "#FDE68A",
-    dot: "•",
-  },
-
-  maintenance: {
-    label: "Perbaikan",
-    background: "#F8FAFC",
-    text: "#475569",
-    border: "#E2E8F0",
-    dot: "•",
-  },
-};
-
-export const ubahStatus = (status: RoomStatus): string => {
-  return STATUS_CONFIG[status].label;
-};
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { locationService } from "../services/locationService";
+import { styles } from "../style/UIstyles";
+import type { Location } from "../types/location";
 
 interface RoomListProps {
-  rooms?: Room[];
   search?: string;
-  onSelectRoom: (roomId: string) => void;
+  reloadSignal?: number;
 }
 
-export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListProps) => {
-  const normalizedSearch = (search ?? "").trim().toLowerCase();
-  const displayedRooms =
-    propRooms ??
-    (search !== undefined
-      ? rooms.filter((room) =>
-          room.name.toLowerCase().includes(normalizedSearch)
-        )
-      : rooms);
+export const RoomList = ({ search, reloadSignal }: RoomListProps) => {
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    // Guard: request lama tidak boleh memperbarui state setelah komponen dilepas
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const items = await locationService.getLocations();
+        if (!cancelled) setLocations(items);
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Gagal memuat data lokasi"
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [tick, reloadSignal]);
+
+  const keyword = (search ?? "").trim().toLowerCase();
+  const displayedLocations = keyword
+    ? locations.filter((location) =>
+        location.name.toLowerCase().includes(keyword)
+      )
+    : locations;
+
+  // Batasi render kartu; API mengembalikan ratusan lokasi
+  const renderedLocations = displayedLocations.slice(0, 10);
 
   return (
     <ScrollView
@@ -76,45 +69,67 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
         paddingHorizontal: 2,
       }}
     >
-      {displayedRooms.length === 0 ? (
-        <Text style={{ color: "#64748B", paddingVertical: 12 }}>
-          Ruangan tidak ditemukan
-        </Text>
-      ) : (
-        displayedRooms.map((room) => {
-          const status = STATUS_CONFIG[room.status];
-          const isClickable = room.id === "R308" || room.name === "Ruang 308";
+      {loading && (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            paddingVertical: 12,
+          }}
+        >
+          <ActivityIndicator size="small" color="#7F1D1D" />
+          <Text style={{ color: "#64748B" }}>Memuat lokasi...</Text>
+        </View>
+      )}
 
-          return (
-            <TouchableOpacity
-              key={room.id}
-              disabled={!isClickable}
-              activeOpacity={isClickable ? 0.8 : 1}
-              accessibilityRole={isClickable ? "button" : undefined}
-              accessibilityLabel={isClickable ? `Lihat detail ${room.name}` : undefined}
-              onPress={isClickable ? () => onSelectRoom(room.id) : undefined}
-              style={{
-                width: 280,
-                backgroundColor: "#FFFFFF",
-                borderRadius: 16,
-                padding: 18,
-                borderWidth: 1.5,
-                borderColor: "#E2E8F0",
-                ...Platform.select({
-                  ios: {
-                    shadowColor: "#0F172A",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 6,
-                  },
-                  android: {
-                    elevation: 1,
-                  },
-                  default: {},
-                }),
-              }}
-            >
-            {/* Header: Room Name & Status Badge */}
+      {!loading && error && (
+        <View style={{ paddingVertical: 12, gap: 8 }}>
+          <Text style={{ color: "#B91C1C", fontWeight: "600" }}>{error}</Text>
+          <TouchableOpacity
+            style={styles.actionButton}
+            activeOpacity={0.85}
+            onPress={() => setTick((t) => t + 1)}
+            disabled={loading}
+          >
+            <Text style={styles.actionButtonText}>Coba Lagi</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {!loading && !error && displayedLocations.length === 0 && (
+        <Text style={{ color: "#64748B", paddingVertical: 12 }}>
+          Lokasi tidak ditemukan
+        </Text>
+      )}
+
+      {!loading &&
+        !error &&
+        renderedLocations.map((location) => (
+          <View
+            key={location.name}
+            style={{
+              width: 280,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 16,
+              padding: 18,
+              borderWidth: 1.5,
+              borderColor: "#E2E8F0",
+              ...Platform.select({
+                ios: {
+                  shadowColor: "#0F172A",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 6,
+                },
+                android: {
+                  elevation: 1,
+                },
+                default: {},
+              }),
+            }}
+          >
+            {/* Header: Location Name & Source Badge */}
             <View
               style={{
                 flexDirection: "row",
@@ -123,7 +138,15 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
                 marginBottom: 14,
               }}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                  flexShrink: 1,
+                  minWidth: 0,
+                }}
+              >
                 <View
                   style={{
                     width: 36,
@@ -136,7 +159,9 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: "800", color: "#475569" }}>RK</Text>
+                  <Text style={{ fontSize: 11, fontWeight: "800", color: "#475569" }}>
+                    LC
+                  </Text>
                 </View>
                 <Text
                   style={{
@@ -144,35 +169,37 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
                     fontWeight: "800",
                     color: "#0F172A",
                     letterSpacing: -0.3,
+                    flexShrink: 1,
                   }}
+                  numberOfLines={1}
                 >
-                  {room.name}
+                  {location.name}
                 </Text>
               </View>
 
               <View
                 style={{
-                  backgroundColor: status.background,
+                  backgroundColor: "#F1F5F9",
                   paddingHorizontal: 10,
                   paddingVertical: 5,
                   borderRadius: 20,
                   borderWidth: 1,
-                  borderColor: status.border,
+                  borderColor: "#E2E8F0",
                 }}
               >
                 <Text
                   style={{
-                    color: status.text,
+                    color: "#475569",
                     fontSize: 11.5,
                     fontWeight: "700",
                   }}
                 >
-                  {status.dot} {status.label}
+                  NTHU
                 </Text>
               </View>
             </View>
 
-            {/* Info Badges */}
+            {/* Info Badges: Coordinates */}
             <View
               style={{
                 flexDirection: "row",
@@ -185,6 +212,7 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
               <View
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   backgroundColor: "#F8FAFC",
                   paddingVertical: 8,
                   paddingHorizontal: 10,
@@ -194,7 +222,7 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
                 }}
               >
                 <Text style={{ fontSize: 11, color: "#64748B", fontWeight: "600" }}>
-                  Gedung
+                  Latitude
                 </Text>
                 <Text
                   style={{
@@ -203,14 +231,16 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
                     color: "#1E293B",
                     marginTop: 2,
                   }}
+                  numberOfLines={1}
                 >
-                  {room.building}
+                  {location.latitude}
                 </Text>
               </View>
 
               <View
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   backgroundColor: "#F8FAFC",
                   paddingVertical: 8,
                   paddingHorizontal: 10,
@@ -220,7 +250,7 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
                 }}
               >
                 <Text style={{ fontSize: 11, color: "#64748B", fontWeight: "600" }}>
-                  Kapasitas
+                  Longitude
                 </Text>
                 <Text
                   style={{
@@ -229,15 +259,14 @@ export const RoomList = ({ rooms: propRooms, search, onSelectRoom }: RoomListPro
                     color: "#1E293B",
                     marginTop: 2,
                   }}
+                  numberOfLines={1}
                 >
-                  {room.capacity} orang
+                  {location.longitude}
                 </Text>
               </View>
             </View>
-            </TouchableOpacity>
-          );
-        })
-      )}
+          </View>
+        ))}
     </ScrollView>
   );
 };

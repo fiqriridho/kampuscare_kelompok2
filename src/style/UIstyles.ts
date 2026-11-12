@@ -461,4 +461,34 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
   },
+
+  // External API (Lokasi Kampus) styles
+  loadingText: {
+    textAlign: "center",
+    color: "#64748B",
+    fontSize: 14,
+    marginVertical: 12,
+  },
+  errorContainer: {
+    alignItems: "center",
+    marginVertical: 12,
+    gap: 8,
+  },
+  errorText: {
+    color: "#DC2626",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  locationsList: {
+    gap: 6,
+    marginTop: 8,
+  },
+  locationItem: {
+    fontSize: 13.5,
+    color: "#334155",
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+
 });
