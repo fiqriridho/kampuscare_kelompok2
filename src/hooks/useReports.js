@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_ENDPOINTS } from '../constants/api';
 import { getReportsCacheKey } from '../constants/storage';
 import apiClient from '../services/apiClient';
+import { uploadMultipartFile } from '../utils/uploadHelper';
 
 export const useReports = (userProfile = null) => {
   const [reports, setReports] = useState([]);
@@ -31,6 +32,12 @@ export const useReports = (userProfile = null) => {
   // Mengambil daftar laporan dari backend
   const fetchReports = useCallback(
     async (statusParam = filterStatus) => {
+      // Jika user belum login / tidak terautentikasi, jangan panggil endpoint reports
+      if (!userProfile) {
+        setIsLoadingReports(false);
+        return;
+      }
+
       setIsLoadingReports(true);
       setReportsError(null);
 
@@ -59,7 +66,7 @@ export const useReports = (userProfile = null) => {
         setIsLoadingReports(false);
       }
     },
-    [filterStatus, cacheKey, loadCachedReports]
+    [filterStatus, cacheKey, loadCachedReports, userProfile]
   );
 
   // Pull-to-refresh handler
@@ -88,28 +95,25 @@ export const useReports = (userProfile = null) => {
   // Membuat laporan baru oleh mahasiswa
   const createReport = useCallback(
     async ({ title, description, location, photoUri, classroomId = null }) => {
-      const formData = new FormData();
-      formData.append('title', title || 'Laporan Kerusakan Fasilitas');
-      formData.append('description', description);
+      const parameters = {
+        title: title || 'Laporan Kerusakan Fasilitas',
+        description,
+      };
       if (location) {
-        formData.append('location_detail', location);
+        parameters.location_detail = location;
       }
       if (classroomId) {
-        formData.append('classroom_id', String(classroomId));
+        parameters.classroom_id = String(classroomId);
       }
 
-      if (photoUri) {
-        // Ambil nama file dan format extension
-        const uriParts = photoUri.split('.');
-        const fileType = uriParts[uriParts.length - 1] || 'jpg';
-        formData.append('photo', {
-          uri: photoUri,
-          name: `photo_${Date.now()}.${fileType}`,
-          type: `image/${fileType === 'png' ? 'png' : fileType === 'webp' ? 'webp' : 'jpeg'}`,
-        });
-      }
+      const res = await uploadMultipartFile({
+        endpoint: API_ENDPOINTS.REPORTS,
+        photoUri,
+        fieldName: 'photo',
+        parameters,
+        defaultFileName: `photo_${Date.now()}`,
+      });
 
-      const res = await apiClient.postMultipart(API_ENDPOINTS.REPORTS, formData);
       const createdItem = res?.data;
 
       if (createdItem) {
@@ -140,19 +144,13 @@ export const useReports = (userProfile = null) => {
 
   // Admin mengunggah foto bukti perbaikan
   const uploadEvidencePhoto = useCallback(async (reportId, photoUri) => {
-    const formData = new FormData();
-    const uriParts = photoUri.split('.');
-    const fileType = uriParts[uriParts.length - 1] || 'jpg';
-    formData.append('photo', {
-      uri: photoUri,
-      name: `evidence_${reportId}_${Date.now()}.${fileType}`,
-      type: `image/${fileType === 'png' ? 'png' : fileType === 'webp' ? 'webp' : 'jpeg'}`,
+    const res = await uploadMultipartFile({
+      endpoint: API_ENDPOINTS.REPORT_EVIDENCE_PHOTO(reportId),
+      photoUri,
+      fieldName: 'photo',
+      defaultFileName: `evidence_${reportId}_${Date.now()}`,
     });
 
-    const res = await apiClient.postMultipart(
-      API_ENDPOINTS.REPORT_EVIDENCE_PHOTO(reportId),
-      formData
-    );
     const evidenceUrl = res?.evidence_photo_url;
 
     if (evidenceUrl) {
@@ -174,10 +172,15 @@ export const useReports = (userProfile = null) => {
     return res?.data || [];
   }, []);
 
-  // Load data awal
+  // Load data awal hanya jika user sudah login
   useEffect(() => {
-    fetchReports(filterStatus);
-  }, [filterStatus]);
+    if (userProfile) {
+      fetchReports(filterStatus);
+    } else {
+      setReports([]);
+      setIsLoadingReports(false);
+    }
+  }, [filterStatus, userProfile]);
 
   return {
     reports,

@@ -67,10 +67,7 @@ export default function ProfileScreen({
       ) : (
         reportHistory.map((item) => {
           const photoSource = item.photo_url
-            ? {
-                uri: `${baseUrl}${API_ENDPOINTS.REPORT_PHOTO(item.id)}`,
-                headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-              }
+            ? { uri: `${baseUrl}${item.photo_url}` }
             : item.photoUri
             ? { uri: item.photoUri }
             : null;

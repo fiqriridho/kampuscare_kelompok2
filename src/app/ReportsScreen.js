@@ -228,12 +228,12 @@ export default function ReportsScreen({
     const badge = getBadgeStyle(item.status);
     const baseUrl = getApiBaseUrl();
 
-    // Resolusi URL foto authenticated
+    // Foto langsung dari static file server — tidak perlu header auth
     const damagePhotoFullUrl = item.photo_url
-      ? `${baseUrl}${API_ENDPOINTS.REPORT_PHOTO(item.id)}`
+      ? `${baseUrl}${item.photo_url}`
       : null;
     const evidencePhotoFullUrl = item.evidence_photo_url
-      ? `${baseUrl}${API_ENDPOINTS.REPORT_EVIDENCE_PHOTO(item.id)}`
+      ? `${baseUrl}${item.evidence_photo_url}`
       : null;
 
     return (
@@ -271,10 +271,7 @@ export default function ReportsScreen({
               activeOpacity={0.8}
             >
               <Image
-                source={{
-                  uri: damagePhotoFullUrl,
-                  headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-                }}
+                source={{ uri: damagePhotoFullUrl }}
                 style={styles.photoThumb}
                 resizeMode="cover"
               />
@@ -296,10 +293,7 @@ export default function ReportsScreen({
               activeOpacity={0.8}
             >
               <Image
-                source={{
-                  uri: evidencePhotoFullUrl,
-                  headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-                }}
+                source={{ uri: evidencePhotoFullUrl }}
                 style={[styles.photoThumb, { borderColor: '#10B981' }]}
                 resizeMode="cover"
               />
@@ -463,8 +457,7 @@ export default function ReportsScreen({
               <View style={styles.modalPreviewContainer}>
                 <Image
                   source={{
-                    uri: `${getApiBaseUrl()}${API_ENDPOINTS.REPORT_EVIDENCE_PHOTO(selectedReport.id)}`,
-                    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+                    uri: `${getApiBaseUrl()}${selectedReport.evidence_photo_url}`,
                   }}
                   style={styles.modalPreviewImage}
                   resizeMode="cover"
@@ -561,10 +554,7 @@ export default function ReportsScreen({
           </View>
           {previewPhotoUrl && (
             <Image
-              source={{
-                uri: previewPhotoUrl,
-                headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-              }}
+              source={{ uri: previewPhotoUrl }}
               style={styles.fullPreviewImage}
               resizeMode="contain"
             />

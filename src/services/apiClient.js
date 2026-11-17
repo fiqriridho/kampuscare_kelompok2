@@ -83,7 +83,9 @@ async function request(endpoint, options = {}) {
   } catch (error) {
     clearTimeout(timer);
 
+    // Tangani timeout AbortController
     if (error.name === 'AbortError') {
+      console.warn(`[apiClient] Request timeout ke: ${fullUrl}`);
       throw new ApiError('Koneksi waktu habis (timeout). Silakan coba lagi.', 408);
     }
 
@@ -92,6 +94,8 @@ async function request(endpoint, options = {}) {
     }
 
     const message = error instanceof Error ? error.message : String(error || '');
+    console.warn(`[apiClient] Gagal fetch ke ${fullUrl}:`, message);
+
     const isNetwork = /network request failed|failed to fetch|fetch failed|networkerror|internet disconnected|connection (?:refused|reset|timed out)/i.test(
       message
     );
