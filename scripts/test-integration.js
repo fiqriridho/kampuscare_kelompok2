@@ -146,6 +146,118 @@ async function runIntegrationTests() {
       '8. Token yang telah di-logout ditolak oleh authMiddleware (401 Unauthorized Blacklisted)'
     );
 
+    // ========================================================================
+    // TEST 9 - 14: VERIFIKASI INTEGRASI TUGAS PERBAIKAN FASILITAS (WEEK 8)
+    // ========================================================================
+
+    // Test 9: Login sebagai Admin dan verifikasi role
+    const resAdminLogin = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'admin@kampuscare.ac.id',
+        password: 'admin123',
+      }),
+    });
+    const dataAdminLogin = await resAdminLogin.json();
+    const adminToken = dataAdminLogin.token;
+    assert(
+      resAdminLogin.status === 200 && dataAdminLogin.user?.role === 'admin',
+      '9. Login admin mengembalikan role "admin" untuk akses tab Tugas Perbaikan',
+      JSON.stringify(dataAdminLogin.user)
+    );
+
+    // Login ulang Mahasiswa untuk testing flow laporan
+    const resMhsReLogin = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'mahasiswa@kampuscare.ac.id',
+        password: 'password123',
+      }),
+    });
+    const dataMhsReLogin = await resMhsReLogin.json();
+    const newMhsToken = dataMhsReLogin.token;
+
+    // Test 10: Mahasiswa membuat laporan via multipart (POST /api/reports)
+    const fdReport = new FormData();
+    fdReport.append('title', 'Lampu Koridor Rusak');
+    fdReport.append('description', 'Lampu kedip-kedip dan berisiko korsleting listrik');
+    fdReport.append('location_detail', 'Gedung A Lantai 1 Koridor Barat');
+    const dummyBlob = new Blob(['sample-evidence-photo'], { type: 'image/jpeg' });
+    fdReport.append('photo', dummyBlob, 'damage.jpg');
+
+    const resCreateReport = await fetch(`${API_BASE_URL}/api/reports`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${newMhsToken}` },
+      body: fdReport,
+    });
+    const dataCreateReport = await resCreateReport.json();
+    const createdId = dataCreateReport.data?.id;
+    assert(
+      resCreateReport.status === 201 &&
+        dataCreateReport.data?.status === 'menunggu' &&
+        createdId,
+      '10. Mahasiswa berhasil POST laporan kerusakan dengan foto (status: menunggu)',
+      JSON.stringify(dataCreateReport)
+    );
+
+    // Test 11: Admin melihat daftar tugas perbaikan (GET /api/reports)
+    const resAdminReports = await fetch(`${API_BASE_URL}/api/reports`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const dataAdminReports = await resAdminReports.json();
+    assert(
+      resAdminReports.status === 200 &&
+        Array.isArray(dataAdminReports.data) &&
+        dataAdminReports.data.some((r) => r.id === createdId),
+      '11. Admin mengambil daftar seluruh laporan via GET /api/reports (200 OK)'
+    );
+
+    // Test 12: Admin mengubah status menjadi diproses (PATCH /api/reports/:id)
+    const resProcess = await fetch(`${API_BASE_URL}/api/reports/${createdId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'diproses', note: 'Sedang dicek oleh teknisi PLN' }),
+    });
+    const dataProcess = await resProcess.json();
+    assert(
+      resProcess.status === 200 && dataProcess.data?.status === 'diproses',
+      '12. Admin memperbarui status laporan menjadi "diproses" (200 OK)'
+    );
+
+    // Test 13: Admin upload foto bukti perbaikan (POST /api/reports/:id/evidence-photo)
+    const fdEvidence = new FormData();
+    fdEvidence.append('photo', dummyBlob, 'evidence_done.jpg');
+    const resEvidence = await fetch(`${API_BASE_URL}/api/reports/${createdId}/evidence-photo`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${adminToken}` },
+      body: fdEvidence,
+    });
+    const dataEvidence = await resEvidence.json();
+    assert(
+      resEvidence.status === 200 && typeof dataEvidence.evidence_photo_url === 'string',
+      '13. Admin mengunggah foto bukti perbaikan (200 OK & URL tersimpan)'
+    );
+
+    // Test 14: Admin menyelesaikan laporan setelah bukti ada (PATCH /api/reports/:id -> selesai)
+    const resComplete = await fetch(`${API_BASE_URL}/api/reports/${createdId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'selesai', note: 'Lampu baru telah dipasang' }),
+    });
+    const dataComplete = await resComplete.json();
+    assert(
+      resComplete.status === 200 && dataComplete.data?.status === 'selesai',
+      '14. Admin menyelesaikan status menjadi "selesai" dengan bukti tersimpan (200 OK)'
+    );
+
   } catch (error) {
     console.error('Terjadi kesalahan saat pengujian:', error);
     failed++;

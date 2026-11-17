@@ -1,7 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 
-export default function BottomNavigation({ activeTab, setActiveTab }) {
+export default function BottomNavigation({ activeTab, setActiveTab, userRole = 'mahasiswa' }) {
+  const isAdmin = userRole === 'admin';
+
   return (
     <View style={styles.bottomNavContainer}>
       <TouchableOpacity
@@ -24,6 +26,22 @@ export default function BottomNavigation({ activeTab, setActiveTab }) {
           Camera
         </Text>
       </TouchableOpacity>
+
+      {/* Tab Khusus Admin: Tugas Perbaikan */}
+      {isAdmin && (
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => setActiveTab('Reports')}
+        >
+          <Text style={[styles.navIcon, activeTab === 'Reports' && styles.activeNavIcon]}>🔧</Text>
+          <Text
+            style={[styles.navLabel, activeTab === 'Reports' && styles.activeNavLabel]}
+            numberOfLines={1}
+          >
+            Tugas
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity
         style={styles.navItem}

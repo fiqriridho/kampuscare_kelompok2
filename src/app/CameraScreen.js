@@ -11,12 +11,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function CameraScreen({
+  createReport,
   handleCreateNewReport,
   onCameraFullscreenChange,
   onExitCamera,
@@ -202,25 +204,52 @@ export default function CameraScreen({
       return;
     }
 
+    if (!damageDescription.trim()) {
+      setErrorMessage('Deskripsi kerusakan wajib diisi');
+      return;
+    }
+
     setIsCapturing(true);
     setErrorMessage('');
 
     try {
-      const reportCreated = await handleCreateNewReport(photo.uri, {
-        location: buildingLocation,
-        description: damageDescription,
-      });
-      if (reportCreated) {
-        setIsCameraReady(false);
-        setPhoto(null);
-        setShowDetails(false);
-        setBuildingLocation('');
-        setDamageDescription('');
-        onReportSubmitted?.();
+      if (createReport) {
+        // Submit langsung ke backend API menggunakan multipart/form-data
+        await createReport({
+          title: buildingLocation.trim()
+            ? `Kerusakan di ${buildingLocation.trim()}`
+            : 'Laporan Kerusakan Fasilitas Kampus',
+          description: damageDescription.trim(),
+          location: buildingLocation.trim(),
+          photoUri: photo.uri,
+        });
+
+        Alert.alert(
+          'Laporan Terkirim! 📸',
+          'Laporan kerusakan fasilitas beserta foto berhasil dikirim ke server KampusCare.'
+        );
+      } else if (handleCreateNewReport) {
+        // Fallback backward compatibility
+        await handleCreateNewReport(photo.uri, {
+          location: buildingLocation,
+          description: damageDescription,
+        });
       }
+
+      setIsCameraReady(false);
+      setPhoto(null);
+      setShowDetails(false);
+      setBuildingLocation('');
+      setDamageDescription('');
+      onReportSubmitted?.();
     } catch (error) {
-      console.error('Gagal menggunakan foto untuk laporan', error);
-      setErrorMessage('Foto belum dapat ditambahkan ke laporan. Silakan coba lagi.');
+      console.error('Gagal mengirim laporan ke API:', error);
+      const errMsg = error.message || 'Gagal mengirim laporan ke server. Silakan coba lagi.';
+      setErrorMessage(errMsg);
+      Alert.alert(
+        'Pengiriman Gagal',
+        `${errMsg}\n\nDraft laporan dan foto Anda tetap tersimpan di form untuk dikirim ulang.`
+      );
     } finally {
       setIsCapturing(false);
     }

@@ -76,7 +76,13 @@ export const getApiBaseUrl = () => {
 export const API_ENDPOINTS = {
   HEALTH: '/api/health',
   REGISTER: '/api/auth/register',
+  LOGIN: '/api/auth/login',
   ME: '/api/auth/me',
   LOGOUT: '/api/auth/logout',
   ROOMS: '/api/rooms',
+  REPORTS: '/api/reports',
+  REPORT_BY_ID: (id) => `/api/reports/${id}`,
+  REPORT_PHOTO: (id) => `/api/reports/${id}/photo`,
+  REPORT_EVIDENCE_PHOTO: (id) => `/api/reports/${id}/evidence-photo`,
+  REPORT_HISTORY: (id) => `/api/reports/${id}/history`,
 };

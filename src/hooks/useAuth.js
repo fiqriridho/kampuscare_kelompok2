@@ -10,6 +10,7 @@ import {
 import { INITIAL_REPORTS_HISTORY } from '../constants/mockData';
 import { getApiBaseUrl, API_ENDPOINTS } from '../constants/api';
 import saveReportPhoto from '../utils/saveReportPhoto';
+import authHandler from '../services/authHandler';
 
 // ============================================================================
 // HELPER SECURE STORE (ANDROID & IOS NATIVE) & IN-MEMORY WEB FALLBACK
@@ -111,6 +112,17 @@ export const useAuth = () => {
   // Status login WAJIB divalidasi dari ketersediaan session token di SecureStore.
   useEffect(() => {
     checkActiveSession();
+
+    // Subscribe ke event 401 Unauthorized terpusat
+    const unsubscribe401 = authHandler.on401(async () => {
+      console.warn('Menerima event 401 Unauthorized: Sesi kedaluwarsa, membersihkan auth state.');
+      await removeAuthToken();
+      setIsAuthenticated(false);
+    });
+
+    return () => {
+      unsubscribe401();
+    };
   }, []);
 
   const checkActiveSession = async () => {
@@ -483,10 +495,15 @@ export const useAuth = () => {
     }
   };
 
-  // Bantuan isi akun demo
-  const handleFillDemoAccount = () => {
-    setLoginEmail('mahasiswa@kampuscare.ac.id');
-    setLoginPassword('password123');
+  // Bantuan isi akun demo (Mahasiswa atau Admin)
+  const handleFillDemoAccount = (role = 'mahasiswa') => {
+    if (role === 'admin') {
+      setLoginEmail('admin@kampuscare.ac.id');
+      setLoginPassword('admin123');
+    } else {
+      setLoginEmail('mahasiswa@kampuscare.ac.id');
+      setLoginPassword('password123');
+    }
     setAuthError('');
   };
 

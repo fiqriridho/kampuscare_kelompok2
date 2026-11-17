@@ -14,7 +14,12 @@ import ClassroomCard from '../components/ClassroomCard';
 import ReportCard from '../components/ReportCard';
 import useRooms from '../hooks/useRooms';
 
-export default function HomeScreen({ userProfile }) {
+export default function HomeScreen({
+  userProfile,
+  reports = [],
+  isLoadingReports = false,
+  onNavigateReports,
+}) {
   const {
     rooms,
     isLoadingRooms,
@@ -24,6 +29,17 @@ export default function HomeScreen({ userProfile }) {
     fetchRooms,
     handleRefresh,
   } = useRooms();
+
+  // Ambil laporan terbaru dari API (fallback ke mockReports jika laporan API masih kosong)
+  const displayReports = reports.length > 0
+    ? reports.slice(0, 5).map((r) => ({
+        id: String(r.id),
+        title: r.title,
+        location: r.location_detail || r.classroom_name || 'Kampus',
+        status: (r.status || 'menunggu').charAt(0).toUpperCase() + (r.status || 'menunggu').slice(1),
+        date: r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Hari ini',
+      }))
+    : mockReports;
 
   return (
     <ScrollView
@@ -72,10 +88,13 @@ export default function HomeScreen({ userProfile }) {
         <TouchableOpacity
           style={[styles.menuCard, { backgroundColor: '#0EA5E9' }]}
           activeOpacity={0.8}
+          onPress={onNavigateReports}
         >
           <Text style={styles.menuIconText}>🛠️</Text>
           <Text style={styles.menuCardTitle}>Fasilitas & Laporan</Text>
-          <Text style={styles.menuCardSubtitle}>Laporkan Kerusakan Kampus</Text>
+          <Text style={styles.menuCardSubtitle}>
+            {userProfile?.role === 'admin' ? 'Kelola Tugas Perbaikan' : 'Laporkan Kerusakan Kampus'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -146,12 +165,12 @@ export default function HomeScreen({ userProfile }) {
       {/* Laporan Kerusakan Teratas */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>Laporan Kerusakan Teratas</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onNavigateReports}>
           <Text style={styles.seeAllText}>Lihat Semua</Text>
         </TouchableOpacity>
       </View>
 
-      {mockReports.map((report) => (
+      {displayReports.map((report) => (
         <ReportCard key={report.id} report={report} />
       ))}
       <View style={{ height: 100 }} />

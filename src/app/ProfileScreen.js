@@ -8,12 +8,15 @@ import {
   Image,
   Platform,
 } from 'react-native';
+import { getApiBaseUrl, API_ENDPOINTS } from '../constants/api';
 
 export default function ProfileScreen({
   userProfile,
   reportHistory = [],
   handleLogout,
+  authToken = null,
 }) {
+  const baseUrl = getApiBaseUrl();
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Profile Header Card */}
@@ -23,7 +26,9 @@ export default function ProfileScreen({
           style={styles.profileAvatarLarge}
         />
         <Text style={styles.profileName}>{userProfile?.name || 'Mahasiswa'}</Text>
-        <Text style={styles.profileNim}>NIM: {userProfile?.nim || '-'}</Text>
+        <Text style={styles.profileNim}>
+          {userProfile?.role === 'admin' ? 'Role: Administrator' : `NIM: ${userProfile?.nim || '-'}`}
+        </Text>
         <Text style={styles.profileMajor}>{userProfile?.major || '-'}</Text>
         {userProfile?.email && (
           <Text style={styles.profileEmail}>✉️ {userProfile.email}</Text>
@@ -60,35 +65,61 @@ export default function ProfileScreen({
           </Text>
         </View>
       ) : (
-        reportHistory.map((item) => (
-          <View key={item.id} style={styles.historyCard}>
-            {item.photoUri ? (
-              <Image
-                source={{ uri: item.photoUri }}
-                style={styles.historyPhoto}
-                accessibilityLabel="Foto laporan kerusakan"
-              />
-            ) : null}
-            <View style={{ flex: 1 }}>
-              <Text style={styles.historyTitle}>{item.title}</Text>
-              <Text style={styles.historyLocation}>📍 {item.location}</Text>
-              {item.description ? (
-                <Text style={styles.historyDescription} numberOfLines={3}>
-                  {item.description}
-                </Text>
+        reportHistory.map((item) => {
+          const photoSource = item.photo_url
+            ? {
+                uri: `${baseUrl}${API_ENDPOINTS.REPORT_PHOTO(item.id)}`,
+                headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+              }
+            : item.photoUri
+            ? { uri: item.photoUri }
+            : null;
+
+          const statusNorm = (item.status || 'menunggu').toLowerCase();
+          const isSuccess = statusNorm === 'selesai';
+          const isWarning = statusNorm === 'menunggu';
+          const statusDisplay = statusNorm.charAt(0).toUpperCase() + statusNorm.slice(1);
+
+          const dateDisplay = item.created_at
+            ? new Date(item.created_at).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })
+            : item.date || 'Hari ini';
+
+          return (
+            <View key={item.id} style={styles.historyCard}>
+              {photoSource ? (
+                <Image
+                  source={photoSource}
+                  style={styles.historyPhoto}
+                  accessibilityLabel="Foto laporan kerusakan"
+                />
               ) : null}
-              <Text style={styles.historyDate}>{item.date}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.historyTitle}>{item.title}</Text>
+                <Text style={styles.historyLocation}>
+                  📍 {item.location_detail || item.location || 'Kampus'}
+                </Text>
+                {item.description ? (
+                  <Text style={styles.historyDescription} numberOfLines={3}>
+                    {item.description}
+                  </Text>
+                ) : null}
+                <Text style={styles.historyDate}>{dateDisplay}</Text>
+              </View>
+              <View
+                style={[
+                  styles.reportStatusBadge,
+                  isSuccess ? styles.badgeSuccess : isWarning ? styles.badgeDanger : styles.badgeWarning,
+                ]}
+              >
+                <Text style={styles.reportStatusText}>{statusDisplay}</Text>
+              </View>
             </View>
-            <View
-              style={[
-                styles.reportStatusBadge,
-                item.status === 'Selesai' ? styles.badgeSuccess : styles.badgeWarning,
-              ]}
-            >
-              <Text style={styles.reportStatusText}>{item.status}</Text>
-            </View>
-          </View>
-        ))
+          );
+        })
       )}
 
       {/* Tombol Logout: Menghapus token dari SecureStore */}

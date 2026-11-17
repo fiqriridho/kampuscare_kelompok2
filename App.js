@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,15 +7,19 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import useAuth from './src/hooks/useAuth';
+import useAuth, { getAuthToken } from './src/hooks/useAuth';
+import useReports from './src/hooks/useReports';
 import AuthScreen from './src/app/AuthScreen';
 import HomeScreen from './src/app/HomeScreen';
 import CameraScreen from './src/app/CameraScreen';
+import ReportsScreen from './src/app/ReportsScreen';
 import ProfileScreen from './src/app/ProfileScreen';
 import BottomNavigation from './src/components/BottomNavigation';
 
 export default function App() {
   const [isCameraFullscreen, setIsCameraFullscreen] = useState(false);
+  const [authToken, setAuthToken] = useState(null);
+
   const {
     activeTab,
     setActiveTab,
@@ -49,9 +53,32 @@ export default function App() {
     handleLogin,
     handleRegister,
     handleLogout,
-    handleCreateNewReport,
     handleFillDemoAccount,
   } = useAuth();
+
+  // Integrasi useReports hook untuk sinkronisasi REST API laporan
+  const {
+    reports,
+    isLoadingReports,
+    reportsError,
+    isRefreshing,
+    filterStatus,
+    setFilterStatus,
+    fetchReports,
+    handleRefresh,
+    createReport,
+    updateReportStatus,
+    uploadEvidencePhoto,
+  } = useReports(userProfile);
+
+  // Ambil token untuk preview foto authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      getAuthToken().then(setAuthToken);
+    } else {
+      setAuthToken(null);
+    }
+  }, [isAuthenticated]);
 
   // ----------------------------------------------------
   // LOADING SPLASH SCREEN SAAT MEMERIKSA SESI
@@ -113,10 +140,17 @@ export default function App() {
       />
 
       {/* Dynamic Screen View */}
-      {activeTab === 'Home' && <HomeScreen userProfile={userProfile} />}
+      {activeTab === 'Home' && (
+        <HomeScreen
+          userProfile={userProfile}
+          reports={reports}
+          isLoadingReports={isLoadingReports}
+          onNavigateReports={() => setActiveTab(userProfile?.role === 'admin' ? 'Reports' : 'Profile')}
+        />
+      )}
       {activeTab === 'Camera' && (
         <CameraScreen
-          handleCreateNewReport={handleCreateNewReport}
+          createReport={createReport}
           onCameraFullscreenChange={setIsCameraFullscreen}
           onExitCamera={() => {
             setIsCameraFullscreen(false);
@@ -124,21 +158,43 @@ export default function App() {
           }}
           onReportSubmitted={() => {
             setIsCameraFullscreen(false);
+            fetchReports();
             setActiveTab('Profile');
           }}
+        />
+      )}
+      {activeTab === 'Reports' && userProfile?.role === 'admin' && (
+        <ReportsScreen
+          reports={reports}
+          isLoadingReports={isLoadingReports}
+          reportsError={reportsError}
+          isRefreshing={isRefreshing}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          handleRefresh={handleRefresh}
+          updateReportStatus={updateReportStatus}
+          uploadEvidencePhoto={uploadEvidencePhoto}
+          userProfile={userProfile}
+          authToken={authToken}
         />
       )}
       {activeTab === 'Profile' && (
         <ProfileScreen
           userProfile={userProfile}
-          reportHistory={reportHistory}
+          reportHistory={reports}
+          isLoading={isLoadingReports}
           handleLogout={handleLogout}
+          authToken={authToken}
         />
       )}
 
-      {/* Modern Bottom Navigation */}
+      {/* Modern Bottom Navigation dengan dukungan Role Admin */}
       {!isCameraFullscreen && (
-        <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+        <BottomNavigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          userRole={userProfile?.role || 'mahasiswa'}
+        />
       )}
     </SafeAreaView>
   );

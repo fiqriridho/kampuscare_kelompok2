@@ -63,13 +63,24 @@ export default function LoginForm({
       {/* Demo Credentials Helper */}
       <View style={styles.demoBox}>
         <View style={styles.demoHeaderRow}>
-          <Text style={styles.demoTitle}>💡 Kredensial Mock Demo:</Text>
-          <TouchableOpacity onPress={handleFillDemoAccount}>
-            <Text style={styles.demoFillLink}>Gunakan Otomatis</Text>
+          <Text style={styles.demoTitle}>💡 Kredensial Demo Cepat:</Text>
+        </View>
+        <View style={styles.demoButtonsRow}>
+          <TouchableOpacity
+            style={styles.demoRoleButton}
+            onPress={() => handleFillDemoAccount?.('mahasiswa')}
+          >
+            <Text style={styles.demoRoleButtonText}>🎓 Akun Mahasiswa</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.demoRoleButton, styles.demoAdminButton]}
+            onPress={() => handleFillDemoAccount?.('admin')}
+          >
+            <Text style={styles.demoRoleButtonText}>🛠️ Akun Admin</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.demoText}>Email: mahasiswa@kampuscare.ac.id</Text>
-        <Text style={styles.demoText}>Kata Sandi: password123</Text>
+        <Text style={styles.demoText}>Mahasiswa: mahasiswa@kampuscare.ac.id (password123)</Text>
+        <Text style={styles.demoText}>Admin: admin@kampuscare.ac.id (admin123)</Text>
       </View>
     </View>
   );
@@ -128,6 +139,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 6,
+  },
+  demoButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  demoRoleButton: {
+    flex: 1,
+    backgroundColor: '#4F46E5',
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  demoAdminButton: {
+    backgroundColor: '#0F172A',
+  },
+  demoRoleButtonText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
   },
   demoTitle: {
     fontSize: 12,
