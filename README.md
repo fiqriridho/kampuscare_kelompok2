@@ -10,7 +10,7 @@ Proyek KampusCare terdiri dari dua repository yang bekerja bersama:
 
 | Repository | Teknologi | Deskripsi | Port Default |
 | :--- | :--- | :--- | :--- |
-| **`kampus-care`** (Frontend) | Expo SDK 57, React Native, Expo Router | Aplikasi mobile & web untuk pelaporan fasilitas dan status ruangan | `8081` |
+| **`kampus-care`** (Frontend) | Expo SDK 58, React Native, Expo Router | Aplikasi mobile & web untuk pelaporan fasilitas dan status ruangan | `8081` |
 | **`kampus-care-backend`** (Backend) | Node.js, Express 5, JWT, In-Memory / Redis | REST API untuk autentikasi JWT, session recovery, blacklist logout, dan data ruangan | `3000` |
 
 ---
@@ -81,6 +81,14 @@ Salin hasil string tersebut ke dalam file `.env` backend pada baris `JWT_SECRET`
 
 > [!NOTE]
 > **Redis bersifat opsional!** Jika Redis server lokal tidak aktif (`REDIS_URL`), backend otomatis menggunakan *in-memory storage fallback* untuk token blacklist tanpa menghasilkan error.
+
+Siapkan database MySQL (Laragon/XAMPP) dari folder backend:
+
+```bash
+mysql -u root -p < db/schema_and_seed.sql
+```
+
+Perintah ini membuat database `kampus_care` beserta tabel dan seed 1 akun demo + 4 ruangan (destruktif terhadap tabel tersebut).
 
 Jalankan server backend:
 
@@ -182,8 +190,8 @@ Untuk masuk ke aplikasi, gunakan akun dummy yang telah terdaftar di database bac
 | :--- | :--- |
 | **Email** | `mahasiswa@kampuscare.ac.id` |
 | **Password** | `password123` |
-| **Nama Pengguna** | Budi Santoso *(Data Dummy)* |
-| **NIM** | `2024103701100XX` |
+| **Nama Pengguna** | Fiqri Ridho F *(seed)* |
+| **NIM** | `202410370110167` |
 | **Jurusan** | Teknik Informatika |
 
 > [!TIP]

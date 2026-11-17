@@ -75,7 +75,7 @@ export const getApiBaseUrl = () => {
  */
 export const API_ENDPOINTS = {
   HEALTH: '/api/health',
-  LOGIN: '/api/auth/login',
+  REGISTER: '/api/auth/register',
   ME: '/api/auth/me',
   LOGOUT: '/api/auth/logout',
   ROOMS: '/api/rooms',

@@ -7,10 +7,7 @@ import {
   ASYNC_PROFILE_KEY,
   ASYNC_HISTORY_KEY,
 } from '../constants/storage';
-import {
-  INITIAL_MOCK_USERS,
-  INITIAL_REPORTS_HISTORY,
-} from '../constants/mockData';
+import { INITIAL_REPORTS_HISTORY } from '../constants/mockData';
 import { getApiBaseUrl, API_ENDPOINTS } from '../constants/api';
 import saveReportPhoto from '../utils/saveReportPhoto';
 
@@ -103,11 +100,8 @@ export const useAuth = () => {
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
-  // In-Memory user list untuk pencocokan kredensial tanpa networking/backend
-  const [usersList, setUsersList] = useState(INITIAL_MOCK_USERS);
-
   // Non-sensitive App Data (Disinkronkan dengan AsyncStorage)
-  const [userProfile, setUserProfile] = useState(INITIAL_MOCK_USERS[0].profile);
+  const [userProfile, setUserProfile] = useState(null);
   const [reportHistory, setReportHistory] = useState(INITIAL_REPORTS_HISTORY);
 
   // ----------------------------------------------------
@@ -326,52 +320,47 @@ export const useAuth = () => {
       return;
     }
 
-    // Validasi 5: Cek apakah email sudah terdaftar
-    const existing = usersList.find(
-      (u) => u.email.toLowerCase() === emailTrimmed.toLowerCase()
-    );
-    if (existing) {
-      setAuthError('Email ini sudah terdaftar. Silakan langsung masuk!');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      // Data profil non-sensitif (SAMA SEKALI TANPA PASSWORD)
-      const newProfile = {
-        name: nameTrimmed,
-        nim: nimTrimmed,
-        major: majorTrimmed,
-        email: emailTrimmed.toLowerCase(),
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      };
-
-      // Simpan data akun di memory runtime state HANYA untuk verifikasi sesi tanpa backend
-      // Password TIDAK disimpan ke AsyncStorage, SecureStore, ataupun localStorage
-      setUsersList((prev) => [
-        ...prev,
-        {
-          email: emailTrimmed.toLowerCase(),
-          password: passwordTrimmed,
-          profile: newProfile,
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}${API_ENDPOINTS.REGISTER}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
-      ]);
+        body: JSON.stringify({
+          name: nameTrimmed,
+          nim: nimTrimmed,
+          major: majorTrimmed,
+          email: emailTrimmed,
+          password: passwordTrimmed,
+        }),
+      });
 
-      // Buat token autentikasi mock
-      const mockSessionToken = `kc_token_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const data = await response.json().catch(() => ({}));
 
-      // 1. Simpan session token ke SecureStore (native)
-      await saveAuthToken(mockSessionToken);
+      if (response.status === 409) {
+        setAuthError('Email atau NIM sudah terdaftar. Silakan langsung masuk!');
+        return;
+      }
+
+      if (!response.ok || !data.token || !data.user) {
+        setAuthError(data.error || `Pendaftaran gagal (${response.status})`);
+        return;
+      }
+
+      // 1. Simpan token JWT dari backend ke SecureStore (native) / in-memory (web)
+      await saveAuthToken(data.token);
 
       // 2. Simpan profil non-sensitif ke AsyncStorage
-      await AsyncStorage.setItem(ASYNC_PROFILE_KEY, JSON.stringify(newProfile));
+      await AsyncStorage.setItem(ASYNC_PROFILE_KEY, JSON.stringify(data.user));
 
-      // 3. Inisialisasi riwayat pelaporan kosong untuk user baru di AsyncStorage
+      // 3. Inisialisasi riwayat pelaporan kosong untuk user baru
       await AsyncStorage.setItem(ASYNC_HISTORY_KEY, JSON.stringify([]));
       setReportHistory([]);
-
-      setUserProfile(newProfile);
+      setUserProfile(data.user);
       setIsAuthenticated(true);
       setActiveTab('Home');
 
@@ -383,10 +372,12 @@ export const useAuth = () => {
       setRegPassword('');
       setRegConfirmPassword('');
 
-      showAlert('Registrasi Berhasil', `Selamat datang di KampusCare, ${newProfile.name}!`);
+      showAlert('Registrasi Berhasil', `Selamat datang di KampusCare, ${data.user.name}!`);
     } catch (err) {
       console.error('Error saat proses pendaftaran', err);
-      setAuthError('Gagal melakukan pendaftaran. Silakan coba lagi.');
+      setAuthError(
+        `Gagal terhubung ke server backend (${getApiBaseUrl()}). Pastikan server backend telah aktif.`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -534,7 +525,6 @@ export const useAuth = () => {
     // Data States
     userProfile,
     reportHistory,
-    usersList,
 
     // Handlers
     checkActiveSession,
