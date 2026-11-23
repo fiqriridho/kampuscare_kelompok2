@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -13,17 +14,21 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
 import { useAuth } from "../context/AuthContext";
+import { authService, formatAuthError } from "../services/authService";
 import { styles } from "../style/UIstyles";
 
 export default function Signup() {
   const router = useRouter();
-  const { isAuthenticated, isReady, storageError, signUp } = useAuth();
+  const { isAuthenticated, isReady, storageError } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -32,11 +37,9 @@ export default function Signup() {
   }, [isAuthenticated, router]);
 
   const handleSignup = async () => {
-    if (!isReady || storageError) {
-      setError(storageError || "Penyimpanan akun sedang dimuat. Coba lagi.");
-      return;
-    }
-    const normalizedEmail = email.trim();
+    if (isSubmitting) return;
+
+    const normalizedEmail = email.trim().toLowerCase();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!normalizedEmail) {
@@ -44,42 +47,51 @@ export default function Signup() {
       setSuccess(false);
       return;
     }
+
     if (!emailPattern.test(normalizedEmail)) {
       setError("Format email tidak valid.");
       setSuccess(false);
       return;
     }
+
     if (password.length < 6) {
       setError("Password minimal 6 karakter.");
       setSuccess(false);
       return;
     }
+
     if (password !== confirmPassword) {
       setError("Konfirmasi password tidak sama.");
       setSuccess(false);
       return;
     }
-    try {
-      if (!(await signUp(normalizedEmail, password))) {
-        setError("Email sudah terdaftar. Silakan login.");
-        setSuccess(false);
-        return;
-      }
-    } catch {
-      setError("Akun gagal disimpan. Periksa penyimpanan perangkat lalu coba lagi.");
-      setSuccess(false);
-      return;
-    }
 
+    setIsSubmitting(true);
     setError("");
-    setSuccess(true);
-    setPassword("");
-    setConfirmPassword("");
+    setSuccess(false);
+    setSuccessMessage("");
+
+    try {
+      await authService.signUp(normalizedEmail, password);
+
+      setSuccess(true);
+      setPassword("");
+      setConfirmPassword("");
+      setSuccessMessage(
+        "Pendaftaran berhasil! Akun Anda telah dibuat. Silakan masuk."
+      );
+    } catch (err) {
+      setError(formatAuthError(err));
+      setSuccess(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.loginContainer}>
       <StatusBar style="dark" />
+
       <KeyboardAvoidingView
         style={styles.loginKeyboardView}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -102,6 +114,7 @@ export default function Signup() {
             <View style={styles.loginForm}>
               <View style={styles.loginFormGroup}>
                 <Text style={styles.loginLabel}>Email</Text>
+
                 <TextInput
                   style={styles.loginInput}
                   placeholder="nama@email.com"
@@ -110,18 +123,20 @@ export default function Signup() {
                   onChangeText={(value) => {
                     setEmail(value);
                     if (error) setError("");
-                    setSuccess(false);
+                    if (success) setSuccess(false);
                   }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
                   textContentType="emailAddress"
                   returnKeyType="next"
+                  editable={!isSubmitting}
                 />
               </View>
 
               <View style={styles.loginFormGroup}>
                 <Text style={styles.loginLabel}>Password</Text>
+
                 <View style={styles.loginPasswordWrapper}>
                   <TextInput
                     style={styles.loginPasswordInput}
@@ -131,17 +146,20 @@ export default function Signup() {
                     onChangeText={(value) => {
                       setPassword(value);
                       if (error) setError("");
-                      setSuccess(false);
+                      if (success) setSuccess(false);
                     }}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
                     autoComplete="new-password"
                     textContentType="newPassword"
                     returnKeyType="next"
+                    editable={!isSubmitting}
                   />
+
                   <TouchableOpacity
                     style={styles.loginPasswordToggle}
                     onPress={() => setShowPassword((visible) => !visible)}
+                    disabled={isSubmitting}
                     accessibilityRole="button"
                     accessibilityLabel={
                       showPassword ? "Sembunyikan password" : "Tampilkan password"
@@ -156,6 +174,7 @@ export default function Signup() {
 
               <View style={styles.loginFormGroup}>
                 <Text style={styles.loginLabel}>Konfirmasi Password</Text>
+
                 <TextInput
                   style={styles.loginInput}
                   placeholder="Ulangi password"
@@ -164,14 +183,15 @@ export default function Signup() {
                   onChangeText={(value) => {
                     setConfirmPassword(value);
                     if (error) setError("");
-                    setSuccess(false);
+                    if (success) setSuccess(false);
                   }}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   autoComplete="new-password"
                   textContentType="newPassword"
                   returnKeyType="done"
-                  onSubmitEditing={handleSignup}
+                  onSubmitEditing={() => void handleSignup()}
+                  editable={!isSubmitting}
                 />
               </View>
 
@@ -180,6 +200,7 @@ export default function Signup() {
                   <Text style={styles.loginErrorText}>{error}</Text>
                 </View>
               ) : null}
+
               {storageError ? (
                 <View style={styles.loginErrorContainer}>
                   <Text style={styles.loginErrorText}>{storageError}</Text>
@@ -188,9 +209,7 @@ export default function Signup() {
 
               {success ? (
                 <View style={styles.signupSuccessContainer}>
-                  <Text style={styles.signupSuccessText}>
-                    Akun berhasil dibuat. Silakan login dengan akun baru.
-                  </Text>
+                  <Text style={styles.signupSuccessText}>{successMessage}</Text>
                 </View>
               ) : null}
 
@@ -206,21 +225,29 @@ export default function Signup() {
               ) : (
                 <TouchableOpacity
                   style={styles.loginButton}
-                  onPress={handleSignup}
-                  disabled={!isReady || Boolean(storageError)}
-                  accessibilityState={{ disabled: !isReady || Boolean(storageError) }}
+                  onPress={() => void handleSignup()}
+                  disabled={!isReady || Boolean(storageError) || isSubmitting}
+                  accessibilityState={{
+                    disabled: !isReady || Boolean(storageError) || isSubmitting,
+                  }}
                   activeOpacity={0.85}
                   accessibilityRole="button"
                   accessibilityLabel="Daftar"
                 >
-                  <Text style={styles.loginButtonText}>Daftar</Text>
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.loginButtonText}>Daftar</Text>
+                  )}
                 </TouchableOpacity>
               )}
 
               <View style={styles.loginSignupRow}>
                 <Text style={styles.loginSignupText}>Sudah punya akun?</Text>
+
                 <TouchableOpacity
                   onPress={() => router.replace("/login")}
+                  disabled={isSubmitting}
                   accessibilityRole="button"
                 >
                   <Text style={styles.loginSignupLink}>Login</Text>
