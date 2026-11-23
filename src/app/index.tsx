@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -13,9 +13,17 @@ import { StatusBar } from "expo-status-bar";
 import { RoomList } from "../components/RoomList";
 import { RoomCards } from "../components/RoomCards";
 import { styles } from "../style/UIstyles";
+import { useAuth } from "../context/AuthContext";
 
 export default function Index() {
   const router = useRouter();
+  const { isAuthenticated, isReady, signOut } = useAuth();
+
+  useEffect(() => {
+    if (isReady && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, isReady, router]);
 
   const handlePress = () => {
     router.push("/laporan-kerusakan");
@@ -23,6 +31,10 @@ export default function Index() {
 
   const [search, setSearch] = useState("");
   const [reloadSignal, setReloadSignal] = useState(0);
+
+  if (!isReady || !isAuthenticated) {
+    return null;
+  }
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -35,6 +47,15 @@ export default function Index() {
               <View style={styles.heroBadge}>
                 <Text style={styles.heroBadgeText}>Portal Mahasiswa & Fasilitas</Text>
               </View>
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={signOut}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Logout"
+              >
+                <Text style={styles.logoutButtonText}>Keluar</Text>
+              </TouchableOpacity>
             </View>
 
             <Text style={styles.heroSubtitle}>Selamat Datang di</Text>
