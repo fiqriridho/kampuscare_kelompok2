@@ -94,13 +94,31 @@ export const useReports = (userProfile = null) => {
 
   // Membuat laporan baru oleh mahasiswa
   const createReport = useCallback(
-    async ({ title, description, location, photoUri, classroomId = null }) => {
+    async ({
+      title,
+      description,
+      location,
+      photoUri,
+      classroomId = null,
+      latitude = null,
+      longitude = null,
+      locationAddress = null,
+      locationAccuracy = null,
+      isInsideCampus = null,
+    }) => {
       const parameters = {
         title: title || 'Laporan Kerusakan Fasilitas',
         description,
       };
       if (location) {
         parameters.location_detail = location;
+      }
+      if (latitude !== null && longitude !== null) {
+        parameters.latitude = latitude;
+        parameters.longitude = longitude;
+        parameters.location_address = locationAddress || location || '';
+        parameters.location_accuracy = locationAccuracy;
+        parameters.is_inside_campus = isInsideCampus;
       }
       if (classroomId) {
         parameters.classroom_id = String(classroomId);

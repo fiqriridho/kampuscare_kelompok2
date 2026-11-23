@@ -8,7 +8,15 @@ import {
   Image,
   Platform,
 } from 'react-native';
-import { getApiBaseUrl, API_ENDPOINTS } from '../constants/api';
+import { getApiBaseUrl } from '../constants/api';
+
+let ProfileMapView = null;
+let ProfileMarker = null;
+if (Platform.OS !== 'web') {
+  const Maps = require('react-native-maps');
+  ProfileMapView = Maps.default;
+  ProfileMarker = Maps.Marker;
+}
 
 export default function ProfileScreen({
   userProfile,
@@ -99,6 +107,42 @@ export default function ProfileScreen({
                 <Text style={styles.historyLocation}>
                   📍 {item.location_detail || item.location || 'Kampus'}
                 </Text>
+                {(item.latitude !== undefined || item.location_latitude !== undefined) &&
+                (item.longitude !== undefined || item.location_longitude !== undefined) ? (
+                  <View style={styles.historyLocationInfo}>
+                    <Text style={styles.historyCoordinates}>
+                      {Number(item.latitude ?? item.location_latitude).toFixed(6)},{' '}
+                      {Number(item.longitude ?? item.location_longitude).toFixed(6)}
+                    </Text>
+                    {(item.location_address || item.address) ? (
+                      <Text style={styles.historyAddress} numberOfLines={2}>
+                        {item.location_address || item.address}
+                      </Text>
+                    ) : null}
+                    {ProfileMapView ? (
+                      <ProfileMapView
+                        style={styles.historyMap}
+                        scrollEnabled={false}
+                        zoomEnabled={false}
+                        pitchEnabled={false}
+                        rotateEnabled={false}
+                        initialRegion={{
+                          latitude: Number(item.latitude ?? item.location_latitude),
+                          longitude: Number(item.longitude ?? item.location_longitude),
+                          latitudeDelta: 0.004,
+                          longitudeDelta: 0.004,
+                        }}
+                      >
+                        <ProfileMarker
+                          coordinate={{
+                            latitude: Number(item.latitude ?? item.location_latitude),
+                            longitude: Number(item.longitude ?? item.location_longitude),
+                          }}
+                        />
+                      </ProfileMapView>
+                    ) : null}
+                  </View>
+                ) : null}
                 {item.description ? (
                   <Text style={styles.historyDescription} numberOfLines={3}>
                     {item.description}
@@ -275,6 +319,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748B',
     marginTop: 2,
+  },
+  historyLocationInfo: {
+    marginTop: 6,
+  },
+  historyCoordinates: {
+    fontSize: 11,
+    color: '#64748B',
+  },
+  historyAddress: {
+    fontSize: 12,
+    color: '#334155',
+    marginTop: 3,
+  },
+  historyMap: {
+    width: '100%',
+    height: 120,
+    borderRadius: 10,
+    marginTop: 6,
   },
   historyDescription: {
     fontSize: 13,

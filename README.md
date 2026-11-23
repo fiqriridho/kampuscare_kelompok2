@@ -182,6 +182,23 @@ npm run android
 
 ---
 
+## 📍 Konfigurasi Location-Based Services
+
+Tambahkan koordinat pusat kampus dan radius geofence pada file `.env` frontend jika ingin menampilkan status "di dalam/di luar area kampus":
+
+```env
+EXPO_PUBLIC_CAMPUS_LATITUDE=<latitude-pusat-kampus>
+EXPO_PUBLIC_CAMPUS_LONGITUDE=<longitude-pusat-kampus>
+EXPO_PUBLIC_CAMPUS_RADIUS_METERS=<radius-dalam-meter>
+```
+
+Nilai contoh di atas dapat diganti dengan koordinat aktual kampus. Tanpa konfigurasi tersebut, GPS, peta, reverse geocoding, dan penyimpanan koordinat tetap dapat digunakan, tetapi indikator geofence tidak aktif.
+
+Kebutuhan native:
+- Android/iOS: jalankan development build setelah mengubah izin plugin atau API Maps.
+- `react-native-maps` memerlukan Google Maps API key untuk build Android/iOS yang menggunakan Google Maps.
+- Reverse geocoding menggunakan layanan bawaan `expo-location` dan membutuhkan internet serta izin lokasi foreground.
+
 ## 👤 Kredensial Akun Demo
 
 Untuk masuk ke aplikasi, gunakan akun dummy yang telah terdaftar di database backend:

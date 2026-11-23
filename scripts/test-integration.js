@@ -184,6 +184,11 @@ async function runIntegrationTests() {
     fdReport.append('title', 'Lampu Koridor Rusak');
     fdReport.append('description', 'Lampu kedip-kedip dan berisiko korsleting listrik');
     fdReport.append('location_detail', 'Gedung A Lantai 1 Koridor Barat');
+    fdReport.append('latitude', '-7.921035');
+    fdReport.append('longitude', '112.580098');
+    fdReport.append('location_address', 'Gedung A, Universitas, Malang');
+    fdReport.append('location_accuracy', '103');
+    fdReport.append('is_inside_campus', 'true');
     const dummyBlob = new Blob(['sample-evidence-photo'], { type: 'image/jpeg' });
     fdReport.append('photo', dummyBlob, 'damage.jpg');
 

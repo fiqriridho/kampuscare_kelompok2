@@ -466,6 +466,16 @@ export const useAuth = () => {
         id: Date.now().toString(),
         title: 'Kerusakan Fasilitas Kampus',
         location: details.location?.trim() || 'Belum ditentukan',
+        location_detail: details.location?.trim() || 'Belum ditentukan',
+        ...(details.latitude !== undefined && details.longitude !== undefined
+          ? {
+              latitude: details.latitude,
+              longitude: details.longitude,
+              location_address: details.locationAddress || details.location?.trim() || '',
+              location_accuracy: details.locationAccuracy ?? null,
+              is_inside_campus: details.isInsideCampus ?? null,
+            }
+          : {}),
         status: 'Diproses',
         date: 'Hari ini',
         ...(details.description?.trim()

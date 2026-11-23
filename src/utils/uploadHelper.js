@@ -95,6 +95,50 @@ export async function uploadMultipartFile({
   }
 
   // STRATEGI 2: Standard FormData + Fetch (Untuk Web atau jika uploadAsync tidak tersedia)
+  if (Platform.OS === 'web') {
+    try {
+      const photoResponse = await fetch(photoUri);
+      const photoBlob = await photoResponse.blob();
+      const photoDataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(photoBlob);
+      });
+
+      const response = await fetch(fullUrl, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          ...parameters,
+          photo_base64: photoDataUrl,
+          photo_name: fileName,
+        }),
+      });
+
+      const resData = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new ApiError(
+          resData.error || `Upload gagal dengan status ${response.status}`,
+          response.status,
+          resData
+        );
+      }
+      return resData;
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      throw new ApiError(
+        'Foto laporan tidak dapat dibaca oleh browser. Ambil ulang atau pilih foto lain.',
+        400,
+        { cause: error instanceof Error ? error.message : String(error) }
+      );
+    }
+  }
+
   const formData = new FormData();
   for (const [key, value] of Object.entries(parameters)) {
     if (value !== null && value !== undefined) {
@@ -108,8 +152,15 @@ export async function uploadMultipartFile({
         const res = await fetch(photoUri);
         const blob = await res.blob();
         formData.append(fieldName, blob, fileName);
-      } catch {
-        formData.append(fieldName, { uri: photoUri, name: fileName, type: mimeType });
+        if (!blob.type) {
+          blob.type = mimeType;
+        }
+      } catch (error) {
+        throw new ApiError(
+          'Foto laporan tidak dapat dibaca oleh browser. Ambil ulang atau pilih foto lain.',
+          400,
+          { cause: error instanceof Error ? error.message : String(error) }
+        );
       }
     } else {
       formData.append(fieldName, {
