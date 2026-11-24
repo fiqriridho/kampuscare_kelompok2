@@ -1,81 +1,61 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
-import { Platform } from "react-native";
-import * as SecureStore from "expo-secure-store";
-
-type Account = { email: string; password: string };
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
+import { authService } from "../services/authService";
 
 type AuthContextValue = {
   isAuthenticated: boolean;
   isReady: boolean;
   storageError: string;
   lastRegisteredEmail: string;
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (email: string, password: string) => Promise<boolean>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 };
 
-const STORAGE_KEY = "kampuscare.auth.accounts.v1";
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-async function readAccounts(): Promise<Account[]> {
-  const serialized =
-    Platform.OS === "web"
-      ? globalThis.localStorage.getItem(STORAGE_KEY)
-      : await SecureStore.getItemAsync(STORAGE_KEY);
-
-  if (!serialized) {
-    return [];
-  }
-
-  const parsed: unknown = JSON.parse(serialized);
-  if (
-    !Array.isArray(parsed) ||
-    !parsed.every(
-      (account) =>
-        typeof account.email === "string" &&
-        typeof account.password === "string"
-    )
-  ) {
-    throw new Error("Data akun tersimpan tidak valid.");
-  }
-
-  return parsed as Account[];
-}
-
-async function writeAccounts(accounts: Account[]) {
-  const serialized = JSON.stringify(accounts);
-  if (Platform.OS === "web") {
-    globalThis.localStorage.setItem(STORAGE_KEY, serialized);
-    return;
-  }
-  await SecureStore.setItemAsync(STORAGE_KEY, serialized);
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [session, setSession] = useState<Session | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [storageError, setStorageError] = useState("");
 
   useEffect(() => {
     let active = true;
 
-    const restoreAccounts = async () => {
-      try {
-        const storedAccounts = await readAccounts();
+    const { data } = supabase.auth.onAuthStateChange(
+      (_event, currentSession) => {
         if (active) {
-          setAccounts(storedAccounts);
+          setSession(currentSession);
+          setStorageError("");
         }
-      } catch {
+      }
+    );
+
+    const restoreSession = async () => {
+      try {
+        const { data: sessionData, error } =
+          await supabase.auth.getSession();
+
+        if (error) {
+          throw error;
+        }
+
+        if (active) {
+          setSession(sessionData.session);
+          setStorageError("");
+        }
+      } catch (error) {
         if (active) {
           setStorageError(
-            "Akun tersimpan tidak dapat dibaca. Coba tutup lalu buka kembali aplikasi."
+            error instanceof Error
+              ? `Gagal memeriksa sesi: ${error.message}`
+              : "Gagal memeriksa sesi autentikasi."
           );
         }
       } finally {
@@ -85,50 +65,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    void restoreAccounts();
+    void restoreSession();
+
     return () => {
       active = false;
+      data.subscription.unsubscribe();
     };
+  }, []);
+
+  const signOut = useCallback(async () => {
+    try {
+      await authService.signOut();
+      setSession(null);
+      setStorageError("");
+    } catch (error) {
+      setStorageError(
+        error instanceof Error
+          ? `Gagal keluar: ${error.message}`
+          : "Gagal keluar dari akun."
+      );
+    }
   }, []);
 
   const value = useMemo(
     () => ({
-      isAuthenticated,
+      isAuthenticated: Boolean(session),
       isReady,
       storageError,
-      lastRegisteredEmail: accounts[accounts.length - 1]?.email ?? "",
-      signIn: async (email: string, password: string) => {
-        if (!isReady || storageError) {
-          throw new Error("Penyimpanan akun belum siap.");
-        }
-        const account = accounts.find(
-          (item) => item.email === email.trim().toLowerCase()
-        );
-        if (!account || account.password !== password) {
-          return false;
-        }
-        setIsAuthenticated(true);
-        return true;
-      },
-      signUp: async (email: string, password: string) => {
-        if (!isReady || storageError) {
-          throw new Error("Penyimpanan akun belum siap.");
-        }
-        const normalizedEmail = email.trim().toLowerCase();
-        if (accounts.some((item) => item.email === normalizedEmail)) {
-          return false;
-        }
-        const updatedAccounts = [
-          ...accounts,
-          { email: normalizedEmail, password },
-        ];
-        await writeAccounts(updatedAccounts);
-        setAccounts(updatedAccounts);
-        return true;
-      },
-      signOut: () => setIsAuthenticated(false),
+      lastRegisteredEmail: "",
+      signOut,
     }),
-    [accounts, isAuthenticated, isReady, storageError]
+    [session, isReady, storageError, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
