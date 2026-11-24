@@ -398,10 +398,14 @@ export const useAuth = () => {
   // ----------------------------------------------------
   // 4. LOGIKA LOGOUT: HAPUS TOKEN DARI SECURESTORE & RESET SESSION
   // ----------------------------------------------------
-  const handleLogout = async () => {
+  const handleLogout = async (beforeLogout) => {
     const performLogoutAction = async () => {
       try {
         const token = await getAuthToken();
+
+        if (beforeLogout) {
+          await beforeLogout();
+        }
 
         // 1. Panggil endpoint POST /api/auth/logout untuk mencabut token (Blacklist di backend)
         if (token) {

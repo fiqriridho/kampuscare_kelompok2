@@ -238,9 +238,18 @@ Untuk masuk ke aplikasi, gunakan akun dummy yang telah terdaftar di database bac
 
 4. **Logout & Blacklist (`POST /api/auth/logout`)**:
    - Pengguna menekan tombol Logout pada layar Profil.
+   - Frontend menghapus push token perangkat dengan `DELETE /api/push/token` sebelum sesi dicabut.
    - Frontend memanggil `POST /api/auth/logout` dengan Bearer token.
    - Backend mencatat `jti` token ke blacklist (Redis / In-Memory). Token yang dicabut tidak dapat digunakan lagi.
    - Frontend menghapus token dari SecureStore dan mereset status aplikasi.
+
+## 🔔 Push Notification
+
+- Frontend meminta izin setelah login, mendaftarkan Expo Push Token melalui `POST /api/push/token` (Bearer token), dan menghapusnya saat logout dengan `DELETE /api/push/token`. Kedua endpoint menerima `{ "token": "<ExpoPushToken>" }`; backend harus mengaitkan token dengan akun dari Bearer token, bukan mempercayai role dari client.
+- Backend perlu mengimplementasikan endpoint tersebut dan mengirim push melalui Expo Push Service saat laporan dibuat atau statusnya berubah. Payload memakai `title`, `body`, dan `data` berisi `screen` (`Reports`, `Profile`, atau `Home`) serta `id`. Untuk Android, gunakan channel ID `new-report` atau `report-status`.
+- `expo-notifications` memerlukan EAS `projectId` (`extra.eas.projectId` di `app.json`, `Constants.easConfig.projectId`, atau `EXPO_PUBLIC_EAS_PROJECT_ID` di `.env`). Push remote tidak tersedia di Expo Go Android pada SDK 53 ke atas; gunakan development build dan perangkat fisik untuk demo.
+- Tap notifikasi status membuka tab `Reports` untuk admin; mahasiswa diarahkan ke `Profile` karena tab `Reports` yang sudah ada hanya menampilkan tugas admin. Notifikasi laporan baru dengan `screen: "ReportDetail"` dan `id` langsung membuka detail laporan. `screen` yang tidak dikenal membuka `Home`.
+- Setelah `POST /api/reports` berhasil, aplikasi menjadwalkan notifikasi lokal bertajuk **Laporan Berhasil Dikirim**. Saat ditekan, notifikasi membuka detail laporan tersebut. Ini dapat didemokan tanpa backend push service; izin notifikasi tetap harus diberikan.
 
 ---
 

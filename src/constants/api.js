@@ -79,6 +79,7 @@ export const API_ENDPOINTS = {
   LOGIN: '/api/auth/login',
   ME: '/api/auth/me',
   LOGOUT: '/api/auth/logout',
+  PUSH_TOKEN: '/api/push/token',
   ROOMS: '/api/rooms',
   REPORTS: '/api/reports',
   REPORT_BY_ID: (id) => `/api/reports/${id}`,

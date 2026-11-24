@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,6 +9,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useAuth, { getAuthToken } from './src/hooks/useAuth';
 import useReports from './src/hooks/useReports';
+import useNotifications from './src/hooks/useNotifications';
+import { scheduleReportSuccessNotification } from './src/services/notificationService';
+import ReportDetailScreen from './src/components/ReportDetailScreen';
 import AuthScreen from './src/app/AuthScreen';
 import HomeScreen from './src/app/HomeScreen';
 import CameraScreen from './src/app/CameraScreen';
@@ -19,6 +22,7 @@ import BottomNavigation from './src/components/BottomNavigation';
 export default function App() {
   const [isCameraFullscreen, setIsCameraFullscreen] = useState(false);
   const [authToken, setAuthToken] = useState(null);
+  const [selectedReportId, setSelectedReportId] = useState(null);
 
   const {
     activeTab,
@@ -52,9 +56,26 @@ export default function App() {
     reportHistory,
     handleLogin,
     handleRegister,
-    handleLogout,
+    handleLogout: handleAuthLogout,
     handleFillDemoAccount,
   } = useAuth();
+
+  const unregisterNotifications = useNotifications({
+    isAuthenticated,
+    isLoadingSession,
+    setActiveTab,
+    setSelectedReportId,
+    userRole: userProfile?.role,
+  });
+
+  const handleLogout = () =>
+    handleAuthLogout(async () => {
+      try {
+        await unregisterNotifications();
+      } catch (error) {
+        console.warn('Gagal menghapus push token sebelum logout:', error);
+      }
+    });
 
   // Integrasi useReports hook untuk sinkronisasi REST API laporan
   const {
@@ -70,6 +91,14 @@ export default function App() {
     updateReportStatus,
     uploadEvidencePhoto,
   } = useReports(userProfile);
+
+  const createReportWithNotification = useCallback(async (reportDetails) => {
+    const report = await createReport(reportDetails);
+    scheduleReportSuccessNotification(report?.id).catch((error) => {
+      console.warn('Laporan terkirim, tetapi notifikasi gagal dijadwalkan:', error);
+    });
+    return report;
+  }, [createReport]);
 
   // Ambil token untuk preview foto authenticated
   useEffect(() => {
@@ -150,7 +179,7 @@ export default function App() {
       )}
       {activeTab === 'Camera' && (
         <CameraScreen
-          createReport={createReport}
+          createReport={createReportWithNotification}
           onCameraFullscreenChange={setIsCameraFullscreen}
           onExitCamera={() => {
             setIsCameraFullscreen(false);
@@ -187,9 +216,19 @@ export default function App() {
           authToken={authToken}
         />
       )}
+      {activeTab === 'ReportDetail' && selectedReportId && (
+        <ReportDetailScreen
+          key={selectedReportId}
+          reportId={selectedReportId}
+          onBack={() => {
+            setSelectedReportId(null);
+            setActiveTab('Home');
+          }}
+        />
+      )}
 
       {/* Modern Bottom Navigation dengan dukungan Role Admin */}
-      {!isCameraFullscreen && (
+      {!isCameraFullscreen && activeTab !== 'ReportDetail' && (
         <BottomNavigation
           activeTab={activeTab}
           setActiveTab={setActiveTab}
