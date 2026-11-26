@@ -29,13 +29,29 @@ export function formatAuthError(error: unknown): string {
   return "Terjadi kesalahan pada proses autentikasi. Silakan coba lagi.";
 }
 
+export interface SignUpMetadata {
+  callsign?: string;
+  role?: string;
+}
+
 export const authService = {
-  async signUp(email: string, password: string) {
+  async signUp(email: string, password: string, metadata?: SignUpMetadata) {
     const normalizedEmail = email.trim().toLowerCase();
+    const cleanedMetadata = metadata
+      ? {
+          ...(metadata.callsign?.trim()
+            ? { callsign: metadata.callsign.trim() }
+            : {}),
+          ...(metadata.role?.trim() ? { role: metadata.role.trim() } : {}),
+        }
+      : undefined;
+    const hasMetadata =
+      cleanedMetadata !== undefined && Object.keys(cleanedMetadata).length > 0;
 
     const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,
+      ...(hasMetadata ? { options: { data: cleanedMetadata } } : {}),
     });
 
     if (error) {

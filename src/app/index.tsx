@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   Text,
@@ -14,6 +17,7 @@ import { RoomList } from "../components/RoomList";
 import { RoomCards } from "../components/RoomCards";
 import { styles } from "../style/UIstyles";
 import { useAuth } from "../context/AuthContext";
+import { FacilityReportRow, reportService } from "../services/reportService";
 
 export default function Index() {
   const router = useRouter();
@@ -36,6 +40,36 @@ export default function Index() {
 
   const [search, setSearch] = useState("");
   const [reloadSignal, setReloadSignal] = useState(0);
+  const [reports, setReports] = useState<FacilityReportRow[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
+  const [reportsRefreshing, setReportsRefreshing] = useState(false);
+  const [reportsError, setReportsError] = useState<string | null>(null);
+
+  const loadReports = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setReportsRefreshing(true);
+    } else {
+      setReportsLoading(true);
+    }
+    setReportsError(null);
+    try {
+      const data = await reportService.getReports();
+      setReports(data);
+    } catch (error) {
+      setReportsError(
+        error instanceof Error ? error.message : "Gagal memuat data laporan."
+      );
+    } finally {
+      setReportsLoading(false);
+      setReportsRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isReady && isAuthenticated) {
+      void loadReports();
+    }
+  }, [isReady, isAuthenticated, loadReports]);
 
   if (!isReady || !isAuthenticated) {
     return null;
@@ -44,7 +78,16 @@ export default function Index() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={reportsRefreshing}
+            onRefresh={() => void loadReports(true)}
+            tintColor="#7F1D1D"
+          />
+        }
+      >
         <View style={styles.content}>
           {/* Hero Banner Header (Refined Executive Burgundy Maroon) */}
           <View style={styles.heroCard}>
@@ -203,6 +246,61 @@ export default function Index() {
               </View>
             </View>
           </View>
+
+          {/* [LIVE CODING] Daftar Laporan Cloud (Supabase SELECT + FlatList) */}
+          {/* <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>Laporan Fasilitas (Cloud)</Text>
+            </View>
+
+            <View style={styles.actionContainer}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                activeOpacity={0.85}
+                onPress={() => void loadReports()}
+                disabled={reportsLoading}
+              >
+                <Text style={styles.actionButtonText}>Muat Ulang Data</Text>
+              </TouchableOpacity>
+            </View>
+
+            {reportsLoading ? (
+              <View style={{ paddingVertical: 16, alignItems: "center", gap: 8 }}>
+                <ActivityIndicator size="small" color="#7F1D1D" />
+                <Text style={{ color: "#64748B", fontSize: 13 }}>
+                  Memuat data dari Supabase...
+                </Text>
+              </View>
+            ) : reportsError ? (
+              <View style={styles.loginErrorContainer}>
+                <Text style={styles.loginErrorText}>{reportsError}</Text>
+              </View>
+            ) : (
+              <FlatList<FacilityReportRow>
+                data={reports}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                ListEmptyComponent={
+                  <Text style={{ color: "#64748B", paddingVertical: 12 }}>
+                    Belum ada laporan tersimpan di cloud.
+                  </Text>
+                }
+                renderItem={({ item }) => (
+                  <View style={[styles.reportCard, { marginBottom: 10 }]}>
+                    <Text style={styles.reportTitle}>{item.location}</Text>
+                    <Text style={styles.reportDescription}>
+                      {item.description}
+                    </Text>
+                    <View style={styles.reportFooterRow}>
+                      <Text style={styles.reportFooterText}>
+                        {new Date(item.created_at).toLocaleString("id-ID")}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              />
+            )}
+          </View> */}
         </View>
       </ScrollView>
     </SafeAreaView>

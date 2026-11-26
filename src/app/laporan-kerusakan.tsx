@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -15,6 +16,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
 import { rooms } from "../data/rooms";
+import { reportService } from "../services/reportService";
 import { styles as globalStyles } from "../style/UIstyles";
 
 export default function LaporanKerusakanScreen() {
@@ -27,11 +29,17 @@ export default function LaporanKerusakanScreen() {
     selectedRoom ? `${selectedRoom.name} (${selectedRoom.building})` : ""
   );
   const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleBack = () => router.back();
 
-  const handleSubmit = () => {
-    if (!location.trim()) {
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+
+    const trimmedLocation = location.trim();
+    const trimmedDescription = description.trim();
+
+    if (!trimmedLocation) {
       Alert.alert(
         "Lokasi Belum Diisi",
         "Silakan masukkan nama atau nomor ruangan yang mengalami kendala."
@@ -39,7 +47,7 @@ export default function LaporanKerusakanScreen() {
       return;
     }
 
-    if (!description.trim()) {
+    if (!trimmedDescription) {
       Alert.alert(
         "Deskripsi Belum Diisi",
         "Mohon jelaskan secara singkat kendala atau kerusakan fasilitas yang ditemukan."
@@ -47,18 +55,34 @@ export default function LaporanKerusakanScreen() {
       return;
     }
 
-    Alert.alert(
-      "Simulasi Laporan Selesai",
-      `Simulasi pengisian selesai. Laporan ini tidak disimpan atau dikirim ke petugas.\n\nDetail:\n• Lokasi: ${location}\n• Deskripsi: ${description}`,
-      [
-        {
-          text: "Selesai",
-          onPress: () => {
-            router.replace("/");
+    setIsSubmitting(true);
+    try {
+      await reportService.createReport({
+        location: trimmedLocation,
+        description: trimmedDescription,
+      });
+
+      Alert.alert(
+        "Laporan Terkirim",
+        `Laporan untuk ${trimmedLocation} berhasil disimpan ke Supabase.`,
+        [
+          {
+            text: "Selesai",
+            onPress: () => {
+              router.replace("/");
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal mengirim laporan ke server.";
+      Alert.alert("Gagal Mengirim Laporan", message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -96,6 +120,7 @@ export default function LaporanKerusakanScreen() {
                   placeholderTextColor="#94A3B8"
                   value={location}
                   onChangeText={setLocation}
+                  editable={!isSubmitting}
                 />
               </View>
 
@@ -109,15 +134,24 @@ export default function LaporanKerusakanScreen() {
                   numberOfLines={4}
                   value={description}
                   onChangeText={setDescription}
+                  editable={!isSubmitting}
                 />
               </View>
 
               <TouchableOpacity
                 style={globalStyles.submitButton}
                 activeOpacity={0.85}
-                onPress={handleSubmit}
+                onPress={() => void handleSubmit()}
+                disabled={isSubmitting}
+                accessibilityState={{ disabled: isSubmitting }}
               >
-                <Text style={globalStyles.submitButtonText}>Kirim Laporan</Text>
+                {isSubmitting ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={globalStyles.submitButtonText}>
+                    Kirim Laporan
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
