@@ -19,22 +19,24 @@ import { styles } from "../style/UIstyles";
 
 export default function Signup() {
   const router = useRouter();
-  const { isAuthenticated, isReady, storageError } = useAuth();
+  const {
+    isAuthenticated,
+    isReady,
+    storageError,
+  } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isReady && isAuthenticated && !isSubmitting) {
       router.replace("/");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isReady, isSubmitting, router]);
 
   const handleSignup = async () => {
     if (isSubmitting) return;
@@ -44,45 +46,35 @@ export default function Signup() {
 
     if (!normalizedEmail) {
       setError("Email wajib diisi.");
-      setSuccess(false);
       return;
     }
 
     if (!emailPattern.test(normalizedEmail)) {
       setError("Format email tidak valid.");
-      setSuccess(false);
       return;
     }
 
     if (password.length < 6) {
       setError("Password minimal 6 karakter.");
-      setSuccess(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError("Konfirmasi password tidak sama.");
-      setSuccess(false);
       return;
     }
 
     setIsSubmitting(true);
     setError("");
-    setSuccess(false);
-    setSuccessMessage("");
 
     try {
       await authService.signUp(normalizedEmail, password);
 
-      setSuccess(true);
       setPassword("");
       setConfirmPassword("");
-      setSuccessMessage(
-        "Pendaftaran berhasil! Akun Anda telah dibuat. Silakan masuk."
-      );
+      router.replace("/login");
     } catch (err) {
       setError(formatAuthError(err));
-      setSuccess(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -123,7 +115,6 @@ export default function Signup() {
                   onChangeText={(value) => {
                     setEmail(value);
                     if (error) setError("");
-                    if (success) setSuccess(false);
                   }}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -146,7 +137,6 @@ export default function Signup() {
                     onChangeText={(value) => {
                       setPassword(value);
                       if (error) setError("");
-                      if (success) setSuccess(false);
                     }}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
@@ -183,7 +173,6 @@ export default function Signup() {
                   onChangeText={(value) => {
                     setConfirmPassword(value);
                     if (error) setError("");
-                    if (success) setSuccess(false);
                   }}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
@@ -207,40 +196,23 @@ export default function Signup() {
                 </View>
               ) : null}
 
-              {success ? (
-                <View style={styles.signupSuccessContainer}>
-                  <Text style={styles.signupSuccessText}>{successMessage}</Text>
-                </View>
-              ) : null}
-
-              {success ? (
-                <TouchableOpacity
-                  style={styles.loginButton}
-                  onPress={() => router.replace("/login")}
-                  activeOpacity={0.85}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.loginButtonText}>Login sekarang</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.loginButton}
-                  onPress={() => void handleSignup()}
-                  disabled={!isReady || Boolean(storageError) || isSubmitting}
-                  accessibilityState={{
-                    disabled: !isReady || Boolean(storageError) || isSubmitting,
-                  }}
-                  activeOpacity={0.85}
-                  accessibilityRole="button"
-                  accessibilityLabel="Daftar"
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.loginButtonText}>Daftar</Text>
-                  )}
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={() => void handleSignup()}
+                disabled={!isReady || Boolean(storageError) || isSubmitting}
+                accessibilityState={{
+                  disabled: !isReady || Boolean(storageError) || isSubmitting,
+                }}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Daftar"
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Daftar</Text>
+                )}
+              </TouchableOpacity>
 
               <View style={styles.loginSignupRow}>
                 <Text style={styles.loginSignupText}>Sudah punya akun?</Text>

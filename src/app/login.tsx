@@ -12,26 +12,22 @@ import {
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
-import { useAuth } from "../context/AuthContext";
 import { authService, formatAuthError } from "../services/authService";
 import { styles } from "../style/UIstyles";
 
 export default function Login() {
   const router = useRouter();
-  const { lastRegisteredEmail } = useAuth();
 
-  const [email, setEmail] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const emailValue = email !== null ? email : (lastRegisteredEmail ?? "");
-
   const handleLogin = async () => {
     if (isSubmitting) return;
 
-    const normalizedEmail = emailValue.trim().toLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!normalizedEmail) {
@@ -91,15 +87,16 @@ export default function Login() {
                 style={styles.loginInput}
                 placeholder="nama@email.com"
                 placeholderTextColor="#94A3B8"
-                value={emailValue}
+                value={email}
                 onChangeText={(value) => {
                   setEmail(value);
                   if (error) setError("");
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                autoComplete="email"
-                textContentType="emailAddress"
+                autoCorrect={false}
+                autoComplete="off"
+                textContentType="none"
                 returnKeyType="next"
                 editable={!isSubmitting}
               />
@@ -120,8 +117,9 @@ export default function Login() {
                   }}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
-                  autoComplete="password"
-                  textContentType="password"
+                  autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
                   returnKeyType="done"
                   onSubmitEditing={() => void handleLogin()}
                   editable={!isSubmitting}

@@ -14,7 +14,6 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   isReady: boolean;
   storageError: string;
-  lastRegisteredEmail: string;
   signOut: () => Promise<void>;
 };
 
@@ -92,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: Boolean(session),
       isReady,
       storageError,
-      lastRegisteredEmail: "",
       signOut,
     }),
     [session, isReady, storageError, signOut]

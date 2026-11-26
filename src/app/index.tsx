@@ -29,6 +29,11 @@ export default function Index() {
     router.push("/laporan-kerusakan");
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    router.replace("/login");
+  };
+
   const [search, setSearch] = useState("");
   const [reloadSignal, setReloadSignal] = useState(0);
 
@@ -49,7 +54,7 @@ export default function Index() {
               </View>
               <TouchableOpacity
                 style={styles.logoutButton}
-                onPress={signOut}
+                onPress={() => void handleLogout()}
                 activeOpacity={0.8}
                 accessibilityRole="button"
                 accessibilityLabel="Logout"
